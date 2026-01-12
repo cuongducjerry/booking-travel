@@ -10,18 +10,18 @@ public class ResLoginDTO {
     @JsonProperty("access_token")
     private String accessToken;
 
-    private UserLogin user;
-
-    @Getter
-    @Setter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class UserLogin {
-        private long id;
-        private String email;
-        private String fullName;
-        private Role role;
-    }
+//    private UserLogin user;
+//
+//    @Getter
+//    @Setter
+//    @AllArgsConstructor
+//    @NoArgsConstructor
+//    public static class UserLogin {
+//        private long id;
+//        private String email;
+//        private String fullName;
+//        private Role role;
+//    }
 
 
 
