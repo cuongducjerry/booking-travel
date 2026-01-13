@@ -14,7 +14,7 @@ public class GlobalException {
     @ExceptionHandler(value = {
             UsernameNotFoundException.class,
             IdInvalidException.class,
-            BadCredentialsException.class
+            BadCredentialsException.class,
     })
     public ResponseEntity<RestResponse<Object>> handleIdException(Exception ex) {
         RestResponse<Object> res = new RestResponse<Object>();
@@ -24,5 +24,15 @@ public class GlobalException {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
+
+    // Other exception
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<RestResponse<Object>> handleOtherExceptions(Exception ex) {
+//        RestResponse<Object> res = new RestResponse<>();
+//        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+//        res.setError("Exception occurs...");
+//        res.setMessage(ex.getMessage());
+//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+//    }
 
 }
