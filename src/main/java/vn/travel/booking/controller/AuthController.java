@@ -67,9 +67,8 @@ public class AuthController {
 
     @PostMapping("/auth/login")
     public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody ReqLoginDTO loginDto) {
+
         try {
-
-
             // Nạp input gồm username/password vào Security
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     loginDto.getUsername(), loginDto.getPassword());
@@ -115,6 +114,32 @@ public class AuthController {
         } catch (AuthenticationException ex) {
             throw new BadCredentialsException("Username hoặc password không hợp lệ");
         }
+    }
+
+    @PostMapping("/auth/logout")
+    @ApiMessage("Logout User")
+    public ResponseEntity<Void> logout() throws IdInvalidException {
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
+
+        if (email.equals("")) {
+            throw new IdInvalidException("Access Token không hợp lệ");
+        }
+
+        // update refresh token = null
+        this.userService.updateUserToken(null, email);
+
+        // remove refresh token cookie
+        ResponseCookie deleteSpringCookie = ResponseCookie
+                .from("refresh_token", null)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteSpringCookie.toString())
+                .body(null);
     }
 
 }
