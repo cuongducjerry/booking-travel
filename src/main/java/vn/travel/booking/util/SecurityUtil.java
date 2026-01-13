@@ -8,13 +8,19 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
+import vn.travel.booking.domain.Permission;
+import vn.travel.booking.domain.User;
+import vn.travel.booking.domain.response.ResLoginDTO;
+import vn.travel.booking.service.UserService;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,9 +30,13 @@ public class SecurityUtil {
      * Encoder used to generate JWT tokens.
      */
     private final JwtEncoder jwtEncoder;
+    private final UserService userService;
 
-    public SecurityUtil(JwtEncoder jwtEncoder) {
+    public SecurityUtil(
+            JwtEncoder jwtEncoder,
+            UserService userService) {
         this.jwtEncoder = jwtEncoder;
+        this.userService = userService;
     }
 
     /**
@@ -51,6 +61,61 @@ public class SecurityUtil {
      */
     @Value("${jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenExpiration;
+
+
+    public String createAccessToken(String email, ResLoginDTO dto) {
+        ResLoginDTO.UserInsideToken userToken = new ResLoginDTO.UserInsideToken();
+        userToken.setId(dto.getUser().getId());
+        userToken.setEmail(dto.getUser().getEmail());
+        userToken.setFullName(dto.getUser().getFullName());
+
+        Instant now = Instant.now();
+        Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
+
+        User user = userService.handleGetUserByUsername(email);
+
+        List<String> listAuthority = user.getRole().getPermissions()
+                .stream()
+                .map(Permission::getCode)
+                .toList();
+
+        // @formatter:off
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuedAt(now)
+                .expiresAt(validity)
+                .subject(email)
+                .claim("user", userToken)
+                .claim("permission", listAuthority)
+                .build();
+
+        JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
+        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
+
+    }
+
+
+    public String createRefreshToken(String email, ResLoginDTO dto) {
+
+        Instant now = Instant.now();
+        Instant validity = now.plus(this.refreshTokenExpiration, ChronoUnit.SECONDS);
+
+        ResLoginDTO.UserInsideToken userToken = new ResLoginDTO.UserInsideToken();
+        userToken.setId(dto.getUser().getId());
+        userToken.setEmail(dto.getUser().getEmail());
+        userToken.setFullName(dto.getUser().getFullName());
+
+        // @formatter:off
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuedAt(now)
+                .expiresAt(validity)
+                .subject(email)
+                .claim("user", userToken)
+                .build();
+
+        JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
+        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
+
+    }
 
 
     /**

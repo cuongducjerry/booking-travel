@@ -35,7 +35,7 @@ public class User {
     private String address;
     private String age;
 
-    @Column(columnDefinition = "MEDIUMTEXT")
+    @Column(columnDefinition = "TEXT")
     private String refreshToken;
 
     private boolean active = true;
@@ -45,7 +45,7 @@ public class User {
     private String createdBy;
     private String updatedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
 
