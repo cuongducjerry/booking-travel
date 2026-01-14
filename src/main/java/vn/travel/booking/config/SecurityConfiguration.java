@@ -24,7 +24,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
-@EnableMethodSecurity(securedEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration {
 
     @Value("${jwt.base64-secret}")
@@ -38,7 +38,8 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(
             HttpSecurity http,
-            CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+            CustomAccessDeniedHandler customAccessDeniedHandler) throws Exception {
 
         http
                 .csrf(c -> c.disable())
@@ -50,11 +51,9 @@ public class SecurityConfiguration {
                                 .anyRequest().authenticated())
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
                         .authenticationEntryPoint(customAuthenticationEntryPoint))
-                // .exceptionHandling(
-                // exceptions -> exceptions
-                // .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) // 401
-                // .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) // 403
-
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler(customAccessDeniedHandler) // 403
+                )
                 .formLogin(f -> f.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
