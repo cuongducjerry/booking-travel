@@ -1,4 +1,4 @@
-package vn.travel.booking.domain.response;
+package vn.travel.booking.dto.response;
 
 import lombok.Data;
 

@@ -7,10 +7,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import vn.travel.booking.domain.User;
-import vn.travel.booking.domain.response.ResCreateUserDTO;
-import vn.travel.booking.domain.response.ResUpdateAvatarUserDTO;
-import vn.travel.booking.domain.response.ResUpdateProfileUserDTO;
+import vn.travel.booking.dto.request.ReqCreateUserDTO;
+import vn.travel.booking.dto.request.ReqUpdateProfileUserDTO;
+import vn.travel.booking.entity.User;
+import vn.travel.booking.dto.response.ResCreateUserDTO;
+import vn.travel.booking.dto.response.ResUpdateAvatarUserDTO;
+import vn.travel.booking.dto.response.ResUpdateProfileUserDTO;
+import vn.travel.booking.mapper.UserMapper;
 import vn.travel.booking.service.UserService;
 import vn.travel.booking.util.annotation.ApiMessage;
 import vn.travel.booking.util.error.IdInvalidException;
@@ -20,41 +23,25 @@ import vn.travel.booking.util.error.IdInvalidException;
 public class UserController {
 
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
 
     public UserController(
-            UserService userService,
-            PasswordEncoder passwordEncoder) {
+            UserService userService) {
         this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
     }
 
 
     @PostMapping("/users")
     @PreAuthorize("hasAuthority('USER_CREATE')")
     @ApiMessage("Create a new user")
-    public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody User postManUser) throws IdInvalidException {
-        boolean isEmailExist = this.userService.isEmailExist(postManUser.getEmail());
-        if(isEmailExist) {
-            throw new IdInvalidException(
-                    "Email " + postManUser.getEmail() + " đã tồn tại, vui lòng sư dụng email khác."
-            );
-        }
-
-        String hashPassword = this.passwordEncoder.encode(postManUser.getPassword());
-        postManUser.setPassword(hashPassword);
-        User user = this.userService.handleCreateUser(postManUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(user));
+    public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody ReqCreateUserDTO reqUser) throws IdInvalidException {
+        ResCreateUserDTO res = this.userService.handleCreateUser(reqUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasAuthority('USER_DELETE')")
     @ApiMessage("Delete a user")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") long id) throws IdInvalidException {
-        User currentUser = this.userService.fetchUserById(id);
-        if(currentUser == null) {
-            throw new IdInvalidException("User với id = " + id + " không tồn tại");
-        }
         this.userService.handleDeleteUser(id);
         return ResponseEntity.ok(null);
     }
@@ -62,12 +49,10 @@ public class UserController {
     @PutMapping("/users/profile")
     @PreAuthorize("hasAuthority('USER_UPDATE_PROFILE')")
     @ApiMessage("Update a profile user")
-    public ResponseEntity<ResUpdateProfileUserDTO> updateUser(@RequestBody User user) throws IdInvalidException{
-        User currentUser = this.userService.handleUpdateProfileUser(user);
-        if(currentUser == null) {
-            throw new IdInvalidException("User với id = " + user.getId() + " không tồn tại");
-        }
-        return ResponseEntity.ok(this.userService.convertToResUpdateProfileUserDTO(currentUser));
+    public ResponseEntity<ResUpdateProfileUserDTO> updateUser(@RequestBody ReqUpdateProfileUserDTO reqUser) throws IdInvalidException{
+
+        ResUpdateProfileUserDTO resUpdateProfileUserDTO = this.userService.handleUpdateProfileUser(reqUser);
+        return ResponseEntity.ok(resUpdateProfileUserDTO);
     }
 
     @PutMapping("/users/avatar")
@@ -77,12 +62,8 @@ public class UserController {
             @RequestParam Long userId,
             @RequestParam MultipartFile file
     ) throws IdInvalidException {
-        User currentUser = this.userService.fetchUserById(userId);
-        if(currentUser == null) {
-            throw new IdInvalidException("User với id = " + userId + " không tồn tại");
-        }
-        String avatarUrl = userService.handleUpdateAvatar(currentUser, file);
-        return ResponseEntity.ok(this.userService.convertToResUpdateAvatarUserDTO(avatarUrl, userId));
+        ResUpdateAvatarUserDTO resUpdateAvatarUserDTO = userService.handleUpdateAvatar(userId, file);
+        return ResponseEntity.ok(resUpdateAvatarUserDTO);
     }
 
 }

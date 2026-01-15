@@ -9,7 +9,7 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
-import vn.travel.booking.domain.RestResponse;
+import vn.travel.booking.entity.RestResponse;
 import vn.travel.booking.util.annotation.ApiMessage;
 
 

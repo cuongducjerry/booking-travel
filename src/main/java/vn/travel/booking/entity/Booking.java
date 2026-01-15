@@ -1,23 +1,31 @@
-package vn.travel.booking.domain;
+package vn.travel.booking.entity;
+
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
 
 @Entity
-@Table(name = "wishlists", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id","property_id"}))
+@Table(name = "bookings")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Wishlist {
+public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    private LocalDate checkIn;
+    private LocalDate checkOut;
+    private double totalPrice;
+    private String status; // NEW, CONFIRMED, CANCELLED, DONE
 
     @Builder.Default
     private boolean active = true;
@@ -29,13 +37,19 @@ public class Wishlist {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    @JsonIgnore
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "property_id")
-    @JsonIgnore
     private Property property;
+
+    @OneToMany(mappedBy = "booking", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Payment> payments;
+
+    @OneToMany(mappedBy = "booking", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Message> messages;
 
     @PrePersist
     public void prePersist() { this.createdAt = Instant.now(); }

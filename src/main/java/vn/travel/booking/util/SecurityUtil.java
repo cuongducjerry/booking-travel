@@ -10,16 +10,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
-import vn.travel.booking.domain.Permission;
-import vn.travel.booking.domain.User;
-import vn.travel.booking.domain.response.ResLoginDTO;
+import vn.travel.booking.entity.Permission;
+import vn.travel.booking.entity.User;
+import vn.travel.booking.dto.response.ResLoginDTO;
 import vn.travel.booking.service.UserService;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 

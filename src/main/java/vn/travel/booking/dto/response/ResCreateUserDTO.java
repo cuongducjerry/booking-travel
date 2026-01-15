@@ -1,4 +1,4 @@
-package vn.travel.booking.domain.response;
+package vn.travel.booking.dto.response;
 
 import lombok.*;
 
@@ -10,6 +10,6 @@ public class ResCreateUserDTO {
     private String fullName;
     private String phone;
     private String address;
-    private String age;
+    private int age;
 
 }

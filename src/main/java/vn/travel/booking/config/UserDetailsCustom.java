@@ -1,16 +1,10 @@
 package vn.travel.booking.config;
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import vn.travel.booking.service.UserService;
-
-import java.util.Collections;
-import java.util.List;
 
 @Component("userDetailsService")
 public class UserDetailsCustom implements UserDetailsService {
@@ -23,15 +17,11 @@ public class UserDetailsCustom implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        vn.travel.booking.domain.User user = this.userService.handleGetUserByUsername(username);
+        vn.travel.booking.entity.User user = this.userService.handleGetUserByUsername(username);
         if (user == null) {
-            throw new UsernameNotFoundException("Username/password không hợp lệ");
+            throw new UsernameNotFoundException("Username / password không hợp lệ");
         }
-
-        return new User(
-                user.getEmail(),
-                user.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+        return new CustomUserDetails(user);
     }
 
 }

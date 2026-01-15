@@ -1,12 +1,12 @@
-package vn.travel.booking.domain;
+package vn.travel.booking.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+import vn.travel.booking.util.constant.StatusUser;
 
 import java.time.Instant;
 import java.util.List;
@@ -37,7 +37,11 @@ public class User {
     private String avatarUrl;
     private String bio;
     private String address;
-    private String age;
+    private int age;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private StatusUser status;
 
     @Column(columnDefinition = "TEXT")
     private String refreshToken;

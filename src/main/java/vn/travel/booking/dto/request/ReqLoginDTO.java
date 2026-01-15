@@ -1,4 +1,4 @@
-package vn.travel.booking.domain.request;
+package vn.travel.booking.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -1,27 +1,26 @@
-package vn.travel.booking.domain;
-
+package vn.travel.booking.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
-@Table(name = "reviews")
+@Table(name = "permissions")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Review {
+public class Permission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private int rating; // 1-5
-    private String comment;
+    private String code;
 
     @Builder.Default
     private boolean active = true;
@@ -31,19 +30,14 @@ public class Review {
     private String createdBy;
     private String updatedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @ManyToMany(mappedBy = "permissions")
     @JsonIgnore
-    private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "property_id")
-    @JsonIgnore
-    private Property property;
+    private List<Role> roles;
 
     @PrePersist
     public void prePersist() { this.createdAt = Instant.now(); }
 
     @PreUpdate
     public void preUpdate() { this.updatedAt = Instant.now(); }
+
 }

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -17,10 +18,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import vn.travel.booking.domain.User;
-import vn.travel.booking.domain.request.ReqLoginDTO;
-import vn.travel.booking.domain.response.ResCreateUserDTO;
-import vn.travel.booking.domain.response.ResLoginDTO;
+import vn.travel.booking.dto.request.ReqCreateUserDTO;
+import vn.travel.booking.entity.User;
+import vn.travel.booking.dto.request.ReqLoginDTO;
+import vn.travel.booking.dto.response.ResCreateUserDTO;
+import vn.travel.booking.dto.response.ResLoginDTO;
+import vn.travel.booking.mapper.UserMapper;
+import vn.travel.booking.service.AuthService;
 import vn.travel.booking.service.UserService;
 import vn.travel.booking.util.SecurityUtil;
 import vn.travel.booking.util.annotation.ApiMessage;
@@ -32,18 +36,18 @@ public class AuthController {
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final SecurityUtil securityUtil;
-    private final PasswordEncoder passwordEncoder;
     private final UserService userService;
+    private final AuthService authService;
 
     public AuthController(
             AuthenticationManagerBuilder authenticationManagerBuilder,
             SecurityUtil securityUtil,
-            PasswordEncoder passwordEncoder,
-            UserService userService) {
+            UserService userService,
+            AuthService authService) {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.securityUtil = securityUtil;
         this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
+        this.authService = authService;
     }
 
     @Value("${jwt.refresh-token-validity-in-seconds}")
@@ -51,57 +55,20 @@ public class AuthController {
 
     @PostMapping("/auth/register")
     @ApiMessage("Register a new user")
-    public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody User postManUser) throws IdInvalidException {
-        boolean isEmailExist = this.userService.isEmailExist(postManUser.getEmail());
-        if(isEmailExist) {
-            throw new IdInvalidException(
-                    "Email " + postManUser.getEmail() + " đã tồn tại, vui lòng sư dụng email khác."
-            );
-        }
-
-        String hashPassword = this.passwordEncoder.encode(postManUser.getPassword());
-        postManUser.setPassword(hashPassword);
-        User user = this.userService.handleCreateUser(postManUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(user));
+    public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody ReqCreateUserDTO reqUser) throws IdInvalidException {
+        ResCreateUserDTO resCreateUserDTO = this.userService.handleRegisterUser(reqUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(resCreateUserDTO);
     }
 
     @PostMapping("/auth/login")
     public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody ReqLoginDTO loginDto) {
 
         try {
-            // Nạp input gồm username/password vào Security
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                    loginDto.getUsername(), loginDto.getPassword());
-
-            // user authentication => a function loadUserByUsername is needed.
-            Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-
-            // set the login information of the user into the context
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            ResLoginDTO res = new ResLoginDTO();
-            User currentUserDB = this.userService.handleGetUserByUsername(loginDto.getUsername());
-            if (currentUserDB != null) {
-                ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
-                        currentUserDB.getId(),
-                        currentUserDB.getEmail(),
-                        currentUserDB.getFullName(),
-                        currentUserDB.getRole());
-                res.setUser(userLogin);
-            }
-
-            String access_token = this.securityUtil.createAccessToken(authentication.getName(), res);
-            res.setAccessToken(access_token);
-
-            // create refresh token
-            String refresh_token = this.securityUtil.createRefreshToken(loginDto.getUsername(), res);
-
-            // update user
-            this.userService.updateUserToken(refresh_token, loginDto.getUsername());
+            ResLoginDTO res = authService.handleLogin(loginDto);
 
             // set cookies
             ResponseCookie resCookies = ResponseCookie
-                    .from("refresh_token", refresh_token)
+                    .from("refresh_token", res.getRefreshToken())
                     .httpOnly(true)
                     .secure(true)
                     .path("/")
@@ -111,6 +78,8 @@ public class AuthController {
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, resCookies.toString())
                     .body(res);
+        } catch (DisabledException ex) {
+            throw new DisabledException(ex.getMessage());
         } catch (AuthenticationException ex) {
             throw new BadCredentialsException("Username hoặc password không hợp lệ");
         }

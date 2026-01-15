@@ -1,4 +1,4 @@
-package vn.travel.booking.domain.response;
+package vn.travel.booking.dto.response;
 
 import lombok.Data;
 
@@ -11,6 +11,6 @@ public class ResUpdateProfileUserDTO {
     private String phone;
     private String bio;
     private String address;
-    private String age;
+    private int age;
     private Instant updatedAt;
 }

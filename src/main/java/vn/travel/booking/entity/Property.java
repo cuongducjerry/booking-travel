@@ -1,4 +1,4 @@
-package vn.travel.booking.domain;
+package vn.travel.booking.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

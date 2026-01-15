@@ -1,27 +1,26 @@
-package vn.travel.booking.domain;
+package vn.travel.booking.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
-@Table(name = "payments")
+@Table(name = "property_types")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Payment {
+public class PropertyType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String paymentMethod;
-    private double amount;
-    private String status; // PENDING, SUCCESS, FAILED
+    private String name;
 
     @Builder.Default
     private boolean active = true;
@@ -31,10 +30,8 @@ public class Payment {
     private String createdBy;
     private String updatedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id")
-    @JsonIgnore
-    private Booking booking;
+    @OneToMany(mappedBy = "propertyType", fetch = FetchType.LAZY)
+    private List<Property> properties;
 
     @PrePersist
     public void prePersist() { this.createdAt = Instant.now(); }

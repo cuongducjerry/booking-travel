@@ -1,4 +1,5 @@
-package vn.travel.booking.domain;
+package vn.travel.booking.entity;
+
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -7,19 +8,20 @@ import lombok.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "property_images")
+@Table(name = "reviews")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PropertyImage {
+public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String imageUrl;
+    private int rating; // 1-5
+    private String comment;
 
     @Builder.Default
     private boolean active = true;
@@ -28,6 +30,11 @@ public class PropertyImage {
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "property_id")

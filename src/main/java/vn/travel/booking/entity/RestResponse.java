@@ -1,4 +1,4 @@
-package vn.travel.booking.domain;
+package vn.travel.booking.entity;
 
 public class RestResponse<T> {
     private int statusCode;

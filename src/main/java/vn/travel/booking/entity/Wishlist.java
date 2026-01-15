@@ -1,4 +1,4 @@
-package vn.travel.booking.domain;
+package vn.travel.booking.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -7,19 +7,17 @@ import lombok.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "messages")
+@Table(name = "wishlists", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id","property_id"}))
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Message {
+public class Wishlist {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
-    private String content;
 
     @Builder.Default
     private boolean active = true;
@@ -30,19 +28,14 @@ public class Message {
     private String updatedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id")
+    @JoinColumn(name = "user_id")
     @JsonIgnore
-    private User sender;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiver_id")
+    @JoinColumn(name = "property_id")
     @JsonIgnore
-    private User receiver;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id")
-    @JsonIgnore
-    private Booking booking;
+    private Property property;
 
     @PrePersist
     public void prePersist() { this.createdAt = Instant.now(); }

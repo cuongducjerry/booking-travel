@@ -1,5 +1,4 @@
-package vn.travel.booking.domain;
-
+package vn.travel.booking.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -8,23 +7,19 @@ import lombok.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "property_images")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Notification {
+public class PropertyImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String title;
-    private String content;
-
-    @Builder.Default
-    private boolean isRead = false;
+    private String imageUrl;
 
     @Builder.Default
     private boolean active = true;
@@ -35,9 +30,9 @@ public class Notification {
     private String updatedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "property_id")
     @JsonIgnore
-    private User user;
+    private Property property;
 
     @PrePersist
     public void prePersist() { this.createdAt = Instant.now(); }

@@ -1,7 +1,7 @@
 package vn.travel.booking.service;
 
 import org.springframework.stereotype.Service;
-import vn.travel.booking.domain.Role;
+import vn.travel.booking.entity.Role;
 import vn.travel.booking.repository.RoleRepository;
 
 import java.util.Optional;

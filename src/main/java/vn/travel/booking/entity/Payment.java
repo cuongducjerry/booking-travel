@@ -1,31 +1,27 @@
-package vn.travel.booking.domain;
-
+package vn.travel.booking.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.util.List;
 
 @Entity
-@Table(name = "bookings")
+@Table(name = "payments")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Booking {
+public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private LocalDate checkIn;
-    private LocalDate checkOut;
-    private double totalPrice;
-    private String status; // NEW, CONFIRMED, CANCELLED, DONE
+    private String paymentMethod;
+    private double amount;
+    private String status; // PENDING, SUCCESS, FAILED
 
     @Builder.Default
     private boolean active = true;
@@ -36,20 +32,9 @@ public class Booking {
     private String updatedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "property_id")
-    private Property property;
-
-    @OneToMany(mappedBy = "booking", fetch = FetchType.LAZY)
+    @JoinColumn(name = "booking_id")
     @JsonIgnore
-    private List<Payment> payments;
-
-    @OneToMany(mappedBy = "booking", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Message> messages;
+    private Booking booking;
 
     @PrePersist
     public void prePersist() { this.createdAt = Instant.now(); }
