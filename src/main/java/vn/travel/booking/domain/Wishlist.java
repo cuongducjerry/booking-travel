@@ -19,7 +19,9 @@ public class Wishlist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Builder.Default
     private boolean active = true;
+
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;

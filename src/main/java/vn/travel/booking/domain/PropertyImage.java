@@ -20,6 +20,8 @@ public class PropertyImage {
     private long id;
 
     private String imageUrl;
+
+    @Builder.Default
     private boolean active = true;
 
     private Instant createdAt;

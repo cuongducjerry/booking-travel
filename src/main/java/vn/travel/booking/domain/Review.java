@@ -22,6 +22,8 @@ public class Review {
 
     private int rating; // 1-5
     private String comment;
+
+    @Builder.Default
     private boolean active = true;
 
     private Instant createdAt;

@@ -22,6 +22,8 @@ public class Amenity {
 
     private String name;
     private String icon;
+
+    @Builder.Default
     private boolean active = true;
 
     private Instant createdAt;

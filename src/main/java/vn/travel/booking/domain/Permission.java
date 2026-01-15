@@ -22,6 +22,8 @@ public class Permission {
     private long id;
 
     private String code;
+
+    @Builder.Default
     private boolean active = true;
 
     private Instant createdAt;

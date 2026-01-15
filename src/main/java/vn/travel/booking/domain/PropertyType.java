@@ -21,6 +21,8 @@ public class PropertyType {
     private long id;
 
     private String name;
+
+    @Builder.Default
     private boolean active = true;
 
     private Instant createdAt;

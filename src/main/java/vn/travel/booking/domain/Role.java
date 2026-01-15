@@ -25,6 +25,8 @@ public class Role {
     private String name;
 
     private String description;
+
+    @Builder.Default
     private boolean active = true;
 
     private Instant createdAt;

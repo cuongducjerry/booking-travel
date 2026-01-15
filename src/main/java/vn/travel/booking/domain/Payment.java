@@ -22,6 +22,8 @@ public class Payment {
     private String paymentMethod;
     private double amount;
     private String status; // PENDING, SUCCESS, FAILED
+
+    @Builder.Default
     private boolean active = true;
 
     private Instant createdAt;

@@ -27,6 +27,8 @@ public class Property {
     private String city;
     private double pricePerNight;
     private int maxGuests;
+
+    @Builder.Default
     private boolean active = true;
 
     private Instant createdAt;

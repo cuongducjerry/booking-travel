@@ -22,7 +22,11 @@ public class Notification {
 
     private String title;
     private String content;
+
+    @Builder.Default
     private boolean isRead = false;
+
+    @Builder.Default
     private boolean active = true;
 
     private Instant createdAt;

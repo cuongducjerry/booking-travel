@@ -26,6 +26,8 @@ public class Booking {
     private LocalDate checkOut;
     private double totalPrice;
     private String status; // NEW, CONFIRMED, CANCELLED, DONE
+
+    @Builder.Default
     private boolean active = true;
 
     private Instant createdAt;
