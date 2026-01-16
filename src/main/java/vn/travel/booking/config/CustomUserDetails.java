@@ -1,6 +1,7 @@
 package vn.travel.booking.config;
 
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,8 +21,16 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        if (user.getStatus() != StatusUser.APPROVED) {
+        if (user.getStatus() == StatusUser.PENDING) {
             throw new DisabledException("Tài khoản đang chờ admin duyệt");
+        }
+        return user.isActive();
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        if (user.getStatus() == StatusUser.LOCK) {
+            throw new LockedException("Tài khoản của bạn đang bị khóa");
         }
         return user.isActive();
     }
@@ -45,6 +54,5 @@ public class CustomUserDetails implements UserDetails {
 
     // các method còn lại
     @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
 }

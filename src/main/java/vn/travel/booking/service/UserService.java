@@ -1,13 +1,18 @@
 package vn.travel.booking.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import vn.travel.booking.dto.request.ReqCreateUserDTO;
 import vn.travel.booking.dto.request.ReqUpdateProfileUserDTO;
+import vn.travel.booking.dto.response.ResultPaginationDTO;
 import vn.travel.booking.entity.Role;
 import vn.travel.booking.entity.User;
-import vn.travel.booking.dto.response.ResCreateUserDTO;
+import vn.travel.booking.dto.response.ResUserDTO;
 import vn.travel.booking.dto.response.ResUpdateAvatarUserDTO;
 import vn.travel.booking.dto.response.ResUpdateProfileUserDTO;
 import vn.travel.booking.mapper.UserMapper;
@@ -15,7 +20,9 @@ import vn.travel.booking.repository.UserRepository;
 import vn.travel.booking.util.constant.StatusUser;
 import vn.travel.booking.util.error.IdInvalidException;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -39,7 +46,8 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public ResCreateUserDTO handleRegisterUser(ReqCreateUserDTO reqCreateUserDTO) throws IdInvalidException {
+    @Transactional
+    public ResUserDTO handleRegisterUser(ReqCreateUserDTO reqCreateUserDTO) throws IdInvalidException {
         boolean isEmailExist = this.isEmailExist(reqCreateUserDTO.getEmail());
         if(isEmailExist) {
             throw new IdInvalidException(
@@ -59,6 +67,7 @@ public class UserService {
         user.setEmail(reqCreateUserDTO.getEmail());
         user.setPassword(hashPassword);
         user.setActive(true);
+        user.setPhone(reqCreateUserDTO.getPhone());
         user.setFullName(reqCreateUserDTO.getFullName());
         user.setAddress(reqCreateUserDTO.getAddress());
         user.setAge(reqCreateUserDTO.getAge());
@@ -73,11 +82,12 @@ public class UserService {
 
         this.userRepository.save(user);
 
-        return this.userMapper.convertToResCreateUserDTO(user);
+        return this.userMapper.convertToResUserDTO(user);
 
     }
 
-    public ResCreateUserDTO handleCreateUser(ReqCreateUserDTO req) throws IdInvalidException {
+    @Transactional
+    public ResUserDTO handleCreateUser(ReqCreateUserDTO req) throws IdInvalidException {
 
         // 1. check email
         if (this.isEmailExist(req.getEmail())) {
@@ -112,9 +122,10 @@ public class UserService {
         this.userRepository.save(user);
 
         // 7. map Entity -> Response
-        return this.userMapper.convertToResCreateUserDTO(user);
+        return this.userMapper.convertToResUserDTO(user);
     }
 
+    @Transactional
     public void handleDeleteUser(long id) throws IdInvalidException {
         User currentUser = this.fetchUserById(id);
         if(currentUser == null) {
@@ -123,6 +134,7 @@ public class UserService {
         this.userRepository.deleteById(id);
     }
 
+    @Transactional
     public ResUpdateProfileUserDTO handleUpdateProfileUser(ReqUpdateProfileUserDTO reqUser) throws IdInvalidException {
 
         User currentUser = this.fetchUserById(reqUser.getId());
@@ -142,6 +154,7 @@ public class UserService {
         return this.userMapper.convertToResUpdateProfileUserDTO(currentUser);
     }
 
+    @Transactional
     public ResUpdateAvatarUserDTO handleUpdateAvatar(Long userId, MultipartFile file) throws IdInvalidException {
 
         User currentUser = this.fetchUserById(userId);
@@ -157,6 +170,37 @@ public class UserService {
         this.userRepository.save(currentUser);
 
         return this.userMapper.convertToResUpdateAvatarUserDTO(avatarUrl, userId);
+    }
+
+    public ResUserDTO viewUserById(long userId) throws IdInvalidException {
+
+        User currentUser = this.fetchUserById(userId);
+        if(currentUser == null) {
+            throw new IdInvalidException("User với id = " + userId + " không tồn tại");
+        }
+        return this.userMapper.convertToResUserDTO(currentUser);
+    }
+
+    public ResultPaginationDTO handleListUser(Specification spec, Pageable pageable) {
+        Page<User> pageUser = this.userRepository.findAll(spec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageUser.getTotalPages());
+        mt.setTotal(pageUser.getTotalElements());
+
+        rs.setMeta(mt);
+
+        List<ResUserDTO> listUser = pageUser.getContent().stream()
+                .map(item -> this.userMapper.convertToResUserDTO(item))
+                .collect(Collectors.toList());
+
+        rs.setResult(listUser);
+        return rs;
+
     }
 
     public User handleGetUserByUsername(String username){
@@ -175,6 +219,7 @@ public class UserService {
         return this.userRepository.existsByEmailAndActiveTrue(email);
     }
 
+    @Transactional
     public void updateUserToken(String token, String email) {
         User currentUser = this.handleGetUserByUsername(email);
         if(currentUser != null) {

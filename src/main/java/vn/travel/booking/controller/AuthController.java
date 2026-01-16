@@ -8,22 +8,17 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import vn.travel.booking.dto.request.ReqCreateUserDTO;
-import vn.travel.booking.entity.User;
 import vn.travel.booking.dto.request.ReqLoginDTO;
-import vn.travel.booking.dto.response.ResCreateUserDTO;
+import vn.travel.booking.dto.response.ResUserDTO;
 import vn.travel.booking.dto.response.ResLoginDTO;
-import vn.travel.booking.mapper.UserMapper;
 import vn.travel.booking.service.AuthService;
 import vn.travel.booking.service.UserService;
 import vn.travel.booking.util.SecurityUtil;
@@ -55,9 +50,9 @@ public class AuthController {
 
     @PostMapping("/auth/register")
     @ApiMessage("Register a new user")
-    public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody ReqCreateUserDTO reqUser) throws IdInvalidException {
-        ResCreateUserDTO resCreateUserDTO = this.userService.handleRegisterUser(reqUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(resCreateUserDTO);
+    public ResponseEntity<ResUserDTO> register(@Valid @RequestBody ReqCreateUserDTO reqUser) throws IdInvalidException {
+        ResUserDTO resUserDTO = this.userService.handleRegisterUser(reqUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(resUserDTO);
     }
 
     @PostMapping("/auth/login")
@@ -80,6 +75,8 @@ public class AuthController {
                     .body(res);
         } catch (DisabledException ex) {
             throw new DisabledException(ex.getMessage());
+        } catch (LockedException ex) {
+            throw new LockedException(ex.getMessage());
         } catch (AuthenticationException ex) {
             throw new BadCredentialsException("Username hoặc password không hợp lệ");
         }

@@ -1,20 +1,23 @@
 package vn.travel.booking.controller;
 
+import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vn.travel.booking.dto.request.ReqCreateUserDTO;
 import vn.travel.booking.dto.request.ReqUpdateProfileUserDTO;
-import vn.travel.booking.entity.User;
-import vn.travel.booking.dto.response.ResCreateUserDTO;
+import vn.travel.booking.dto.response.ResUserDTO;
 import vn.travel.booking.dto.response.ResUpdateAvatarUserDTO;
 import vn.travel.booking.dto.response.ResUpdateProfileUserDTO;
-import vn.travel.booking.mapper.UserMapper;
+import vn.travel.booking.dto.response.ResultPaginationDTO;
+import vn.travel.booking.entity.User;
 import vn.travel.booking.service.UserService;
+import vn.travel.booking.specification.UserSpecification;
 import vn.travel.booking.util.annotation.ApiMessage;
 import vn.travel.booking.util.error.IdInvalidException;
 
@@ -33,8 +36,8 @@ public class UserController {
     @PostMapping("/users")
     @PreAuthorize("hasAuthority('USER_CREATE')")
     @ApiMessage("Create a new user")
-    public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody ReqCreateUserDTO reqUser) throws IdInvalidException {
-        ResCreateUserDTO res = this.userService.handleCreateUser(reqUser);
+    public ResponseEntity<ResUserDTO> register(@Valid @RequestBody ReqCreateUserDTO reqUser) throws IdInvalidException {
+        ResUserDTO res = this.userService.handleCreateUser(reqUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
@@ -64,6 +67,30 @@ public class UserController {
     ) throws IdInvalidException {
         ResUpdateAvatarUserDTO resUpdateAvatarUserDTO = userService.handleUpdateAvatar(userId, file);
         return ResponseEntity.ok(resUpdateAvatarUserDTO);
+    }
+
+    @GetMapping("/users/{id}")
+    @PreAuthorize("hasAuthority('USER_VIEW')")
+    @ApiMessage("Fetch user by id")
+    public ResponseEntity<ResUserDTO> getUserById(@PathVariable("id") long id) throws IdInvalidException {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.viewUserById(id));
+    }
+
+    @GetMapping("/users")
+    @PreAuthorize("hasAuthority('USER_LIST_ALL')")
+    @ApiMessage("Fetch all users")
+    public ResponseEntity<ResultPaginationDTO> getAllUser(
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String keyword,
+            Pageable pageable
+    ) {
+
+        Specification<User> spec = Specification
+                .where(UserSpecification.hasRole(role))
+                .and(UserSpecification.keyword(keyword));
+
+        ResultPaginationDTO res = userService.handleListUser(spec, pageable);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 
 }
