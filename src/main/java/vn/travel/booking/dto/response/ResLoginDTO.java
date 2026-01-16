@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import vn.travel.booking.entity.Role;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class ResLoginDTO {
@@ -16,6 +18,8 @@ public class ResLoginDTO {
 
     private UserLogin user;
 
+    private List<String> permissions;
+
     @Getter
     @Setter
     @AllArgsConstructor
@@ -24,7 +28,7 @@ public class ResLoginDTO {
         private long id;
         private String email;
         private String fullName;
-        private Role role;
+        private String role;
     }
 
     @Getter

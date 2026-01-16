@@ -33,7 +33,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         RestResponse<Object> res = new RestResponse<>();
         res.setStatusCode(HttpStatus.FORBIDDEN.value());
         res.setError(accessDeniedException.getMessage());
-        res.setMessage("Bạn không có quyền truy cập tài nguyên này");
+        res.setMessage(accessDeniedException.getMessage());
 
         mapper.writeValue(response.getWriter(), res);
     }

@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import vn.travel.booking.entity.User;
 import vn.travel.booking.util.constant.StatusUser;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -18,6 +19,8 @@ public class CustomUserDetails implements UserDetails {
     public CustomUserDetails(User user) {
         this.user = user;
     }
+
+    // ================== ACCOUNT STATUS ==================
 
     @Override
     public boolean isEnabled() {
@@ -35,6 +38,8 @@ public class CustomUserDetails implements UserDetails {
         return user.isActive();
     }
 
+    // ================== BASIC INFO ==================
+
     @Override
     public String getUsername() {
         return user.getEmail();
@@ -45,14 +50,37 @@ public class CustomUserDetails implements UserDetails {
         return user.getPassword();
     }
 
+    // ================== AUTHORITIES ==================
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(
-                "ROLE_" + user.getRole().getName()
-        ));
+
+        List<GrantedAuthority> authorities = new ArrayList<>();
+
+        // PERMISSIONS
+        user.getRole().getPermissions().forEach(permission ->
+                authorities.add(
+                        new SimpleGrantedAuthority(permission.getCode())
+                )
+        );
+
+        return authorities;
     }
 
-    // các method còn lại
+    // ================== HELPER ==================
+
+    public boolean hasAuthority(String authority) {
+        return getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(authority));
+    }
+
+    public Long getId() {
+        return user.getId();
+    }
+
+    // ================== DEFAULT ==================
+
     @Override public boolean isAccountNonExpired() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
 }
+

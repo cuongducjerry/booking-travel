@@ -7,12 +7,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import vn.travel.booking.dto.request.ReqLoginDTO;
 import vn.travel.booking.dto.response.ResLoginDTO;
 import vn.travel.booking.entity.User;
 import vn.travel.booking.util.SecurityUtil;
+
+import java.util.List;
 
 @Service
 public class AuthService {
@@ -46,16 +49,23 @@ public class AuthService {
                     currentUserDB.getId(),
                     currentUserDB.getEmail(),
                     currentUserDB.getFullName(),
-                    currentUserDB.getRole());
+                    currentUserDB.getRole().getName());
             res.setUser(userLogin);
         }
 
+        List<String> permissions = authentication.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        res.setPermissions(permissions);
+
         // create access token
-        String accessToken = this.securityUtil.createAccessToken(authentication.getName(), res);
+        String accessToken = this.securityUtil.createAccessToken(res);
         res.setAccessToken(accessToken);
 
         // create refresh token
-        String refreshToken = this.securityUtil.createRefreshToken(loginDto.getUsername(), res);
+        String refreshToken = this.securityUtil.createRefreshToken(res);
 
         // update user
         this.userService.updateUserToken(refreshToken, loginDto.getUsername());

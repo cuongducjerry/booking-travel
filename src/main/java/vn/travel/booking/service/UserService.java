@@ -8,17 +8,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import vn.travel.booking.dto.request.ReqCreateUserDTO;
+import vn.travel.booking.dto.request.ReqUpdatePasswordDTO;
 import vn.travel.booking.dto.request.ReqUpdateProfileUserDTO;
-import vn.travel.booking.dto.response.ResultPaginationDTO;
+import vn.travel.booking.dto.response.*;
 import vn.travel.booking.entity.Role;
 import vn.travel.booking.entity.User;
-import vn.travel.booking.dto.response.ResUserDTO;
-import vn.travel.booking.dto.response.ResUpdateAvatarUserDTO;
-import vn.travel.booking.dto.response.ResUpdateProfileUserDTO;
 import vn.travel.booking.mapper.UserMapper;
 import vn.travel.booking.repository.UserRepository;
+import vn.travel.booking.util.SecurityUtil;
 import vn.travel.booking.util.constant.StatusUser;
 import vn.travel.booking.util.error.IdInvalidException;
+import vn.travel.booking.util.error.InvalidPasswordException;
+import vn.travel.booking.util.error.UnauthenticatedException;
 
 import java.util.List;
 import java.util.Optional;
@@ -155,11 +156,14 @@ public class UserService {
     }
 
     @Transactional
-    public ResUpdateAvatarUserDTO handleUpdateAvatar(Long userId, MultipartFile file) throws IdInvalidException {
+    public ResUpdateAvatarUserDTO handleUpdateAvatar(MultipartFile file) throws UnauthenticatedException {
 
-        User currentUser = this.fetchUserById(userId);
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new UnauthenticatedException("Bạn chưa đăng nhập"));
+
+        User currentUser = this.userRepository.findByEmailAndActiveTrue(email);
         if(currentUser == null) {
-            throw new IdInvalidException("User với id = " + userId + " không tồn tại");
+            throw new UnauthenticatedException("User với email = " + email + " không tồn tại");
         }
 
         // Upload Cloudinary
@@ -169,16 +173,41 @@ public class UserService {
         currentUser.setAvatarUrl(avatarUrl);
         this.userRepository.save(currentUser);
 
-        return this.userMapper.convertToResUpdateAvatarUserDTO(avatarUrl, userId);
+        return this.userMapper.convertToResUpdateAvatarUserDTO(avatarUrl, currentUser.getId());
     }
+
+    @Transactional
+    public ResUpdatePasswordDTO handleUpdatePassword(ReqUpdatePasswordDTO req) throws UnauthenticatedException, InvalidPasswordException {
+
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new UnauthenticatedException("Bạn chưa đăng nhập"));
+
+        User currentUser = this.userRepository.findByEmailAndActiveTrue(email);
+        if(currentUser == null) {
+            throw new UnauthenticatedException("User với email = " + email + " không tồn tại");
+        }
+
+        // 1. Check old password
+        if (!passwordEncoder.matches(req.getOldPassword(), currentUser.getPassword())) {
+            throw new InvalidPasswordException("Mật khẩu cũ không đúng");
+        }
+
+        // 2. Encode & update new password
+        currentUser.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        userRepository.save(currentUser);
+
+        return new ResUpdatePasswordDTO("Đổi mật khẩu thành công");
+    }
+
 
     public ResUserDTO viewUserById(long userId) throws IdInvalidException {
 
-        User currentUser = this.fetchUserById(userId);
-        if(currentUser == null) {
+        User targetUser = this.fetchUserById(userId);
+        if(targetUser == null) {
             throw new IdInvalidException("User với id = " + userId + " không tồn tại");
         }
-        return this.userMapper.convertToResUserDTO(currentUser);
+
+        return this.userMapper.convertToResUserDTO(targetUser);
     }
 
     public ResultPaginationDTO handleListUser(Specification spec, Pageable pageable) {

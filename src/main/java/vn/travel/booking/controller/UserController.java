@@ -10,16 +10,16 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vn.travel.booking.dto.request.ReqCreateUserDTO;
+import vn.travel.booking.dto.request.ReqUpdatePasswordDTO;
 import vn.travel.booking.dto.request.ReqUpdateProfileUserDTO;
-import vn.travel.booking.dto.response.ResUserDTO;
-import vn.travel.booking.dto.response.ResUpdateAvatarUserDTO;
-import vn.travel.booking.dto.response.ResUpdateProfileUserDTO;
-import vn.travel.booking.dto.response.ResultPaginationDTO;
+import vn.travel.booking.dto.response.*;
 import vn.travel.booking.entity.User;
 import vn.travel.booking.service.UserService;
 import vn.travel.booking.specification.UserSpecification;
 import vn.travel.booking.util.annotation.ApiMessage;
 import vn.travel.booking.util.error.IdInvalidException;
+import vn.travel.booking.util.error.InvalidPasswordException;
+import vn.travel.booking.util.error.UnauthenticatedException;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -62,15 +62,25 @@ public class UserController {
     @PreAuthorize("hasAuthority('USER_UPDATE_AVATAR')")
     @ApiMessage("Update a avatar image user")
     public ResponseEntity<ResUpdateAvatarUserDTO> updateAvatar(
-            @RequestParam Long userId,
             @RequestParam MultipartFile file
-    ) throws IdInvalidException {
-        ResUpdateAvatarUserDTO resUpdateAvatarUserDTO = userService.handleUpdateAvatar(userId, file);
+    ) throws UnauthenticatedException {
+        ResUpdateAvatarUserDTO resUpdateAvatarUserDTO = userService.handleUpdateAvatar(file);
         return ResponseEntity.ok(resUpdateAvatarUserDTO);
     }
 
+    @PutMapping("/users/password")
+    @PreAuthorize("hasAuthority('USER_UPDATE_PASSWORD')")
+    @ApiMessage("Update password user")
+    public ResponseEntity<ResUpdatePasswordDTO> updatePassword(
+            @Valid @RequestBody ReqUpdatePasswordDTO req
+    ) throws UnauthenticatedException, InvalidPasswordException {
+
+        return ResponseEntity.ok(this.userService.handleUpdatePassword(req));
+    }
+
+
     @GetMapping("/users/{id}")
-    @PreAuthorize("hasAuthority('USER_VIEW')")
+    @PreAuthorize("hasAuthority('USER_VIEW') and @userSecurity.canViewUser(#id)")
     @ApiMessage("Fetch user by id")
     public ResponseEntity<ResUserDTO> getUserById(@PathVariable("id") long id) throws IdInvalidException {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.viewUserById(id));

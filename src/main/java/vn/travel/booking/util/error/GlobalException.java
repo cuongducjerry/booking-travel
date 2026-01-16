@@ -2,6 +2,7 @@ package vn.travel.booking.util.error;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,8 +18,10 @@ public class GlobalException {
             IdInvalidException.class,
             BadCredentialsException.class,
             RuntimeException.class,
+            InvalidPasswordException.class,
+            UnauthenticatedException.class
     })
-    public ResponseEntity<RestResponse<Object>> handleIdException(Exception ex) {
+    public ResponseEntity<RestResponse<Object>> handleException(Exception ex) {
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatusCode(HttpStatus.BAD_REQUEST.value());
         res.setMessage(ex.getMessage());
