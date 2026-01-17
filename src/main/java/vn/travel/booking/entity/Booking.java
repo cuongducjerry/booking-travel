@@ -24,7 +24,14 @@ public class Booking {
 
     private LocalDate checkIn;
     private LocalDate checkOut;
-    private double totalPrice;
+    private double pricePerNightSnapshot;
+    private int nights;
+
+    private double grossAmount;      // total amount paid by customers
+    private double commissionRate;   // snapshot at the time of booking
+    private double commissionFee;
+    private double hostEarning;
+
     private String status; // NEW, CONFIRMED, CANCELLED, DONE
 
     @Builder.Default
@@ -35,11 +42,11 @@ public class Booking {
     private String createdBy;
     private String updatedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "property_id")
     private Property property;
 

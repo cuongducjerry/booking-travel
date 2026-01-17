@@ -29,7 +29,7 @@ public class PropertyImage {
     private String createdBy;
     private String updatedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "property_id")
     @JsonIgnore
     private Property property;

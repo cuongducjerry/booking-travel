@@ -5,11 +5,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
+
 import java.time.Instant;
 import java.util.List;
 
 @Entity
 @Table(name = "roles")
+@SQLDelete(sql = "UPDATE roles SET active = false WHERE id = ?")
+@Where(clause = "active = true")
 @Getter
 @Setter
 @Builder

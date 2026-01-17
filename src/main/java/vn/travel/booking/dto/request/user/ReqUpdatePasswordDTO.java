@@ -1,4 +1,4 @@
-package vn.travel.booking.dto.request;
+package vn.travel.booking.dto.request.user;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

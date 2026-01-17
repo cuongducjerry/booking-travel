@@ -36,11 +36,15 @@ public class Property {
     private String createdBy;
     private String updatedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "host_id")
     private User host;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
+    @JoinColumn(name = "contract_id")
+    private HostContract contract;
+
+    @ManyToOne
     @JoinColumn(name = "property_type_id")
     private PropertyType propertyType;
 

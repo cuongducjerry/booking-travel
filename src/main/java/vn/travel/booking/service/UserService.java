@@ -7,22 +7,28 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import vn.travel.booking.dto.request.ReqCreateUserDTO;
-import vn.travel.booking.dto.request.ReqUpdatePasswordDTO;
-import vn.travel.booking.dto.request.ReqUpdateProfileUserDTO;
+import vn.travel.booking.dto.request.user.ReqCreateUserDTO;
+import vn.travel.booking.dto.request.user.ReqUpdatePasswordDTO;
+import vn.travel.booking.dto.request.user.ReqUpdateProfileUserDTO;
 import vn.travel.booking.dto.response.*;
+import vn.travel.booking.dto.response.user.ResUpdateAvatarUserDTO;
+import vn.travel.booking.dto.response.user.ResUpdatePasswordDTO;
+import vn.travel.booking.dto.response.user.ResUpdateProfileUserDTO;
+import vn.travel.booking.dto.response.user.ResUserDTO;
 import vn.travel.booking.entity.Role;
 import vn.travel.booking.entity.User;
+import vn.travel.booking.mapper.PaginationMapper;
 import vn.travel.booking.mapper.UserMapper;
 import vn.travel.booking.repository.UserRepository;
 import vn.travel.booking.util.SecurityUtil;
+import vn.travel.booking.util.constant.RoleCode;
 import vn.travel.booking.util.constant.StatusUser;
+import vn.travel.booking.util.error.ForbiddenException;
 import vn.travel.booking.util.error.IdInvalidException;
 import vn.travel.booking.util.error.InvalidPasswordException;
 import vn.travel.booking.util.error.UnauthenticatedException;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +38,7 @@ public class UserService {
     private final RoleService roleService;
     private final CloudinaryService cloudinaryService;
     private final UserMapper userMapper;
+    private final PaginationMapper paginationMapper;
     private final PasswordEncoder passwordEncoder;
 
     public UserService(
@@ -39,16 +46,18 @@ public class UserService {
             RoleService roleService,
             CloudinaryService cloudinaryService,
             UserMapper userMapper,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            PaginationMapper paginationMapper) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.cloudinaryService = cloudinaryService;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+        this.paginationMapper = paginationMapper;
     }
 
     @Transactional
-    public ResUserDTO handleRegisterUser(ReqCreateUserDTO reqCreateUserDTO) throws IdInvalidException {
+    public ResUserDTO handleRegisterUser(ReqCreateUserDTO reqCreateUserDTO) {
         boolean isEmailExist = this.isEmailExist(reqCreateUserDTO.getEmail());
         if(isEmailExist) {
             throw new IdInvalidException(
@@ -73,9 +82,9 @@ public class UserService {
         user.setAddress(reqCreateUserDTO.getAddress());
         user.setAge(reqCreateUserDTO.getAge());
 
-        if(role.getName().equals("USER")) {
+        if(role.getName().equals(RoleCode.USER.toString())) {
             user.setStatus(StatusUser.APPROVED);
-        } else if(role.getName().equals("HOST")) {
+        } else if(role.getName().equals(RoleCode.HOST.toString())) {
             user.setStatus(StatusUser.PENDING);
         }
 
@@ -88,7 +97,7 @@ public class UserService {
     }
 
     @Transactional
-    public ResUserDTO handleCreateUser(ReqCreateUserDTO req) throws IdInvalidException {
+    public ResUserDTO handleCreateUser(ReqCreateUserDTO req) {
 
         // 1. check email
         if (this.isEmailExist(req.getEmail())) {
@@ -127,16 +136,16 @@ public class UserService {
     }
 
     @Transactional
-    public void handleDeleteUser(long id) throws IdInvalidException {
+    public void handleDeleteUser(long id) {
         User currentUser = this.fetchUserById(id);
         if(currentUser == null) {
             throw new IdInvalidException("User với id = " + id + " không tồn tại");
         }
-        this.userRepository.deleteById(id);
+        this.userRepository.delete(currentUser);
     }
 
     @Transactional
-    public ResUpdateProfileUserDTO handleUpdateProfileUser(ReqUpdateProfileUserDTO reqUser) throws IdInvalidException {
+    public ResUpdateProfileUserDTO handleUpdateProfileUser(ReqUpdateProfileUserDTO reqUser) {
 
         User currentUser = this.fetchUserById(reqUser.getId());
         if(currentUser == null) {
@@ -148,9 +157,6 @@ public class UserService {
         currentUser.setBio(reqUser.getBio());
         currentUser.setAddress(reqUser.getAddress());
         currentUser.setAge(reqUser.getAge());
-
-        // update
-        currentUser = this.userRepository.save(currentUser);
 
         return this.userMapper.convertToResUpdateProfileUserDTO(currentUser);
     }
@@ -171,13 +177,12 @@ public class UserService {
 
         // Update DB
         currentUser.setAvatarUrl(avatarUrl);
-        this.userRepository.save(currentUser);
 
-        return this.userMapper.convertToResUpdateAvatarUserDTO(avatarUrl, currentUser.getId());
+        return this.userMapper.convertToResUpdateAvatarUserDTO(currentUser);
     }
 
     @Transactional
-    public ResUpdatePasswordDTO handleUpdatePassword(ReqUpdatePasswordDTO req) throws UnauthenticatedException, InvalidPasswordException {
+    public ResUpdatePasswordDTO handleUpdatePassword(ReqUpdatePasswordDTO req)  {
 
         String email = SecurityUtil.getCurrentUserLogin()
                 .orElseThrow(() -> new UnauthenticatedException("Bạn chưa đăng nhập"));
@@ -194,13 +199,12 @@ public class UserService {
 
         // 2. Encode & update new password
         currentUser.setPassword(passwordEncoder.encode(req.getNewPassword()));
-        userRepository.save(currentUser);
 
-        return new ResUpdatePasswordDTO("Đổi mật khẩu thành công");
+        return new ResUpdatePasswordDTO("Đổi mật khẩu thành công", currentUser.getUpdatedAt());
     }
 
 
-    public ResUserDTO viewUserById(long userId) throws IdInvalidException {
+    public ResUserDTO viewUserById(long userId) {
 
         User targetUser = this.fetchUserById(userId);
         if(targetUser == null) {
@@ -212,23 +216,18 @@ public class UserService {
 
     public ResultPaginationDTO handleListUser(Specification spec, Pageable pageable) {
         Page<User> pageUser = this.userRepository.findAll(spec, pageable);
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-
-        mt.setPages(pageUser.getTotalPages());
-        mt.setTotal(pageUser.getTotalElements());
-
-        rs.setMeta(mt);
+        int pageNumber = pageable.getPageNumber() + 1;
+        int pageSize = pageable.getPageSize();
+        int totalPages = pageUser.getTotalPages();
+        long totalElements = pageUser.getTotalElements();
 
         List<ResUserDTO> listUser = pageUser.getContent().stream()
                 .map(item -> this.userMapper.convertToResUserDTO(item))
                 .collect(Collectors.toList());
 
-        rs.setResult(listUser);
-        return rs;
+        ResultPaginationDTO res = this.paginationMapper.convertToResultPaginationDTO(pageNumber, pageSize, totalPages, totalElements, listUser);
+
+        return res;
 
     }
 
@@ -237,11 +236,9 @@ public class UserService {
     }
 
     public User fetchUserById(long id){
-        Optional<User> userOptional = this.userRepository.findById(id);
-        if(userOptional.isPresent()){
-            return userOptional.get();
-        }
-        return null;
+        return userRepository.findById(id)
+                .orElseThrow(() ->
+                        new IdInvalidException("User với id = " + id + " không tồn tại"));
     }
 
     public boolean isEmailExist(String email){
@@ -253,10 +250,7 @@ public class UserService {
         User currentUser = this.handleGetUserByUsername(email);
         if(currentUser != null) {
             currentUser.setRefreshToken(token);
-            this.userRepository.save(currentUser);
         }
     }
-
-
 
 }

@@ -3,6 +3,7 @@ package vn.travel.booking.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import vn.travel.booking.util.constant.PaymentStatus;
 
 import java.time.Instant;
 
@@ -21,7 +22,9 @@ public class Payment {
 
     private String paymentMethod;
     private double amount;
-    private String status; // PENDING, SUCCESS, FAILED
+    private PaymentStatus status; // PENDING, SUCCESS, FAILED
+    private String providerTxnId; // Transaction code from VNPay/Stripe
+    private String currency;      // VND, USD
 
     @Builder.Default
     private boolean active = true;
@@ -31,7 +34,7 @@ public class Payment {
     private String createdBy;
     private String updatedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "booking_id")
     @JsonIgnore
     private Booking booking;

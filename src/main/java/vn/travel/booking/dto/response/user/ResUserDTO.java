@@ -1,7 +1,8 @@
-package vn.travel.booking.dto.response;
+package vn.travel.booking.dto.response.user;
 
 import lombok.*;
-import vn.travel.booking.dto.request.ReqCreateUserDTO;
+
+import java.time.Instant;
 
 @Data
 public class ResUserDTO {
@@ -13,6 +14,8 @@ public class ResUserDTO {
     private int age;
 
     private Role role;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     @Data
     public static class Role {

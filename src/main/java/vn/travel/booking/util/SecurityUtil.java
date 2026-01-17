@@ -14,12 +14,15 @@ import vn.travel.booking.entity.Permission;
 import vn.travel.booking.entity.User;
 import vn.travel.booking.dto.response.ResLoginDTO;
 import vn.travel.booking.service.UserService;
+import vn.travel.booking.util.error.ForbiddenException;
+import vn.travel.booking.util.error.UnauthenticatedException;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -72,6 +75,7 @@ public class SecurityUtil {
         Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
 
         List<String> listAuthority = dto.getPermissions();
+        String role = dto.getUser().getRole(); // SUPER_ADMIN / ADMIN / HOST / USER
 
         // @formatter:off
         JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -80,6 +84,7 @@ public class SecurityUtil {
                 .subject(dto.getUser().getEmail())
                 .claim("user", userToken)
                 .claim("permission", listAuthority)
+                .claim("role", role)
                 .build();
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
@@ -148,6 +153,33 @@ public class SecurityUtil {
     public static Optional<String> getCurrentUserLogin() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         return Optional.ofNullable(extractPrincipal(securityContext.getAuthentication()));
+    }
+
+    public static String getCurrentUserRole() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return null;
+
+        if (auth.getPrincipal() instanceof Jwt jwt) {
+            return jwt.getClaimAsString("role");
+        }
+        return null;
+    }
+
+    public static Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return null;
+
+        if (auth.getPrincipal() instanceof Jwt jwt) {
+
+            Map<String, Object> userClaim = jwt.getClaim("user");
+            if (userClaim == null) return null;
+
+            Object id = userClaim.get("id");
+            if (id instanceof Number number) {
+                return number.longValue();
+            }
+        }
+        return null;
     }
 
     /**

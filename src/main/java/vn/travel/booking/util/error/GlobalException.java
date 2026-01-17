@@ -13,41 +13,61 @@ import vn.travel.booking.entity.RestResponse;
 @RestControllerAdvice
 public class GlobalException {
 
-    @ExceptionHandler(value = {
-            UsernameNotFoundException.class,
-            IdInvalidException.class,
+    private ResponseEntity<RestResponse<Object>> build(HttpStatus status, String message) {
+        RestResponse<Object> res = new RestResponse<>();
+        res.setStatusCode(status.value());
+        res.setError(status.getReasonPhrase());
+        res.setMessage(message);
+        return ResponseEntity.status(status).body(res);
+    }
+
+    @ExceptionHandler({
+            NameInvalidException.class,
+            InvalidPasswordException.class
+    })
+    public ResponseEntity<RestResponse<Object>> handleBusiness(Exception ex) {
+        return build(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler({
             BadCredentialsException.class,
-            RuntimeException.class,
-            InvalidPasswordException.class,
             UnauthenticatedException.class
     })
-    public ResponseEntity<RestResponse<Object>> handleException(Exception ex) {
-        RestResponse<Object> res = new RestResponse<Object>();
-        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        res.setMessage(ex.getMessage());
-        res.setError("Exception occurs...");
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    public ResponseEntity<RestResponse<Object>> handleAuth(Exception ex) {
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<RestResponse<Object>> handleDisabled(Exception ex) {
-        RestResponse<Object> res = new RestResponse<Object>();
-        res.setStatusCode(HttpStatus.FORBIDDEN.value());
-        res.setMessage(ex.getMessage());
-        res.setError("Exception occurs...");
-
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(res);
+        return build(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
-    // Other exception
+    @ExceptionHandler({
+            UsernameNotFoundException.class,
+            IdInvalidException.class
+    })
+    public ResponseEntity<RestResponse<Object>> handleNotFound(Exception ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler({
+            PermissionNotFoundException.class,
+            IllegalArgumentException.class
+    })
+    public ResponseEntity<RestResponse<Object>> handleBadRequest(Exception ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<RestResponse<Object>> handleForbidden(Exception ex) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
 //    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<RestResponse<Object>> handleOtherExceptions(Exception ex) {
-//        RestResponse<Object> res = new RestResponse<>();
-//        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
-//        res.setError("Exception occurs...");
-//        res.setMessage(ex.getMessage());
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+//    public ResponseEntity<RestResponse<Object>> handleOther(Exception ex) {
+//        // log.error("Unexpected error", ex)
+//        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
 //    }
+
 
 }

@@ -21,30 +21,28 @@ public class UserSecurity {
             return false;
         }
 
-        // ===== JWT MODE =====
-        if (auth.getPrincipal() instanceof Jwt jwt) {
-
-            List<String> permissions =
-                    jwt.getClaimAsStringList("permission");
-
-            if (permissions != null && permissions.contains("USER_VIEW_ALL")) {
-                return true;
-            }
-
-            Map<String, Object> userClaim =
-                    jwt.getClaim("user");
-
-            if (userClaim == null) return false;
-
-            Long currentUserId = ((Number) userClaim.get("id")).longValue();
-
-            if (!currentUserId.equals(targetUserId)) {
-                throw new AccessDeniedException(
-                        "Bạn không có quyền xem người dùng này"
-                );
-            }
-            return currentUserId.equals(targetUserId);
+        if (!(auth.getPrincipal() instanceof Jwt jwt)) {
+            return false;
         }
-        return false;
+
+        // ADMIN / VIEW_ALL
+        List<String> permissions = jwt.getClaimAsStringList("permission");
+        if (permissions != null && permissions.contains("USER_LIST_ALL")) {
+            return true;
+        }
+
+        // SELF
+        Map<String, Object> userClaim = jwt.getClaim("user");
+        if (userClaim == null) return false;
+
+        Long currentUserId = ((Number) userClaim.get("id")).longValue();
+
+        if (!currentUserId.equals(targetUserId)) {
+            throw new AccessDeniedException(
+                    "Bạn không có quyền xem người dùng này"
+            );
+        }
+
+        return true;
     }
 }
