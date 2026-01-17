@@ -17,33 +17,39 @@ public class UserSpecification {
             Long currentUserId = SecurityUtil.getCurrentUserId();
 
             if (role == null) {
-                return cb.disjunction();
+                return cb.disjunction(); // không thấy gì
             }
+
+            Join<User, Role> roleJoin = root.join("role");
 
             return switch (role) {
 
-                case "SUPER_ADMIN", "ADMIN" ->
-                        cb.conjunction(); // all
+                case "SUPER_ADMIN" ->
+                        cb.conjunction(); // see all
+
+                case "ADMIN" ->
+                        roleJoin.get("name").in("HOST", "USER");
 
                 case "HOST" -> {
-                    // join User -> Booking -> Property
+                    // Only the USER + must be related to this host's property.
                     Join<User, Booking> bookingJoin = root.join("bookings");
                     Join<Booking, Property> propertyJoin = bookingJoin.join("property");
 
-                    yield cb.equal(
-                            propertyJoin.get("host").get("id"),
-                            currentUserId
+                    yield cb.and(
+                            cb.equal(roleJoin.get("name"), "USER"),
+                            cb.equal(
+                                    propertyJoin.get("host").get("id"),
+                                    currentUserId
+                            )
                     );
                 }
-
-                case "USER" ->
-                        cb.equal(root.get("id"), currentUserId);
 
                 default ->
                         cb.disjunction();
             };
         };
     }
+
 
 
     public static Specification<User> hasRole(String role) {
