@@ -2,6 +2,9 @@ package vn.travel.booking.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import vn.travel.booking.util.constant.ContractStatus;
 
 import java.time.Instant;
@@ -9,6 +12,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "host_contracts")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @Builder
@@ -40,7 +44,12 @@ public class HostContract {
 
     private Instant createdAt;
     private Instant updatedAt;
+
+    @CreatedBy
+    @Column(updatable = false)
     private String createdBy;
+
+    @LastModifiedBy
     private String updatedBy;
 
     // 1 contract - 1 host

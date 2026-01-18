@@ -86,7 +86,6 @@ public class RoleService {
                 .orElseThrow(() ->
                         new IdInvalidException("Role với id = " + id + " không tồn tại")
                 );
-        role.getPermissions().clear();
         this.roleRepository.delete(role);
     }
 

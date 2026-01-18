@@ -13,5 +13,7 @@ public class ResRoleDTO {
     private String description;
     private Instant createdAt;
     private Instant updatedAt;
+    private String createdBy;
+    private String updatedBy;
     private List<ResPermissionDTO> permissions;
 }

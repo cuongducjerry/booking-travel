@@ -28,7 +28,16 @@ public class ResLoginDTO {
         private long id;
         private String email;
         private String fullName;
+        private String avatarUrl;
         private String role;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserGetAccount {
+        private UserLogin user;
     }
 
     @Getter

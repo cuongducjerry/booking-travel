@@ -7,6 +7,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 import java.util.List;
@@ -15,6 +18,7 @@ import java.util.List;
 @Table(name = "roles")
 @SQLDelete(sql = "UPDATE roles SET active = false WHERE id = ?")
 @Where(clause = "active = true")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @Builder
@@ -36,7 +40,12 @@ public class Role {
 
     private Instant createdAt;
     private Instant updatedAt;
+
+    @CreatedBy
+    @Column(updatable = false)
     private String createdBy;
+
+    @LastModifiedBy
     private String updatedBy;
 
     // 1 Role → nhiều User

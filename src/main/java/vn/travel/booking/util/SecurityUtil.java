@@ -182,6 +182,32 @@ public class SecurityUtil {
         return null;
     }
 
+    public static boolean hasRolePrefix(String prefix) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+
+        if (auth.getPrincipal() instanceof Jwt jwt) {
+            String role = jwt.getClaimAsString("role"); // SUPER_ADMIN / ADMIN / HOST / USER
+            if (role == null) return false;
+
+            return role.startsWith(prefix);
+        }
+
+        return false;
+    }
+
+    public static boolean isAdmin() {
+        return hasRolePrefix("ADMIN");
+    }
+
+    public static boolean isHost() {
+        return "HOST".equals(getCurrentUserRole());
+    }
+
+    public static boolean isSuperAdmin() {
+        return "SUPER_ADMIN".equals(getCurrentUserRole());
+    }
+
     /**
      * Extracts the principal (username/subject) from the authentication object.
      *

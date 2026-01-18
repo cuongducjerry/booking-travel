@@ -24,6 +24,8 @@ public class RoleMapper {
         roleDTO.setDescription(role.getDescription());
         roleDTO.setCreatedAt(role.getCreatedAt());
         roleDTO.setUpdatedAt(role.getUpdatedAt());
+        roleDTO.setCreatedBy(role.getCreatedBy());
+        roleDTO.setUpdatedBy(role.getUpdatedBy());
 
         List<ResPermissionDTO> listPermissionDTO = role.getPermissions().stream()
                 .map(item -> this.permissionMapper.convertToResPermissionDTO(item))

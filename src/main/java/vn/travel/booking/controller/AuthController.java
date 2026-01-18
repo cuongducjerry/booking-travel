@@ -11,10 +11,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import vn.travel.booking.dto.request.user.ReqCreateUserDTO;
 import vn.travel.booking.dto.request.ReqLoginDTO;
 import vn.travel.booking.dto.response.user.ResUserDTO;
@@ -80,6 +77,33 @@ public class AuthController {
         } catch (AuthenticationException ex) {
             throw new BadCredentialsException("Username hoặc password không hợp lệ");
         }
+    }
+
+    @GetMapping("/auth/refresh")
+    @ApiMessage("Get User by refresh token")
+    public ResponseEntity<ResLoginDTO> getRefreshToken(
+            @CookieValue("refresh_token") String refreshToken
+    ) {
+        ResLoginDTO result = authService.refresh(refreshToken);
+
+        ResponseCookie cookie = ResponseCookie
+                .from("refresh_token", result.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(refreshTokenExpiration)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(result);
+    }
+
+    @GetMapping("/auth/account")
+    @ApiMessage("Fetch account")
+    public ResponseEntity<ResLoginDTO.UserGetAccount> getAccount() {
+        ResLoginDTO.UserGetAccount userGetAccount = this.authService.getUserAccount();
+        return ResponseEntity.ok().body(userGetAccount);
     }
 
     @PostMapping("/auth/logout")

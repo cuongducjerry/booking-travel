@@ -13,51 +13,53 @@ public class UserSpecification {
     public static Specification<User> visibleByCurrentUser() {
         return (root, query, cb) -> {
 
-            String role = SecurityUtil.getCurrentUserRole();
             Long currentUserId = SecurityUtil.getCurrentUserId();
-
-            if (role == null) {
-                return cb.disjunction(); // không thấy gì
-            }
-
             Join<User, Role> roleJoin = root.join("role");
 
-            return switch (role) {
+            // SUPER_ADMIN: see all
+            if (SecurityUtil.isSuperAdmin()) {
+                return cb.conjunction();
+            }
 
-                case "SUPER_ADMIN" ->
-                        cb.conjunction(); // see all
+            // ADMIN_* (Ops / Finance): only USER + HOST
+            if (SecurityUtil.isAdmin()) {
+                return roleJoin.get("name").in("USER", "HOST");
+            }
 
-                case "ADMIN" ->
-                        roleJoin.get("name").in("HOST", "USER");
+            // HOST: Only users are involved in relation to their property
+            if (SecurityUtil.isHost()) {
+                Join<User, Booking> bookingJoin = root.join("bookings");
+                Join<Booking, Property> propertyJoin = bookingJoin.join("property");
 
-                case "HOST" -> {
-                    // Only the USER + must be related to this host's property.
-                    Join<User, Booking> bookingJoin = root.join("bookings");
-                    Join<Booking, Property> propertyJoin = bookingJoin.join("property");
+                return cb.and(
+                        cb.equal(roleJoin.get("name"), "USER"),
+                        cb.equal(
+                                propertyJoin.get("host").get("id"),
+                                currentUserId
+                        )
+                );
+            }
 
-                    yield cb.and(
-                            cb.equal(roleJoin.get("name"), "USER"),
-                            cb.equal(
-                                    propertyJoin.get("host").get("id"),
-                                    currentUserId
-                            )
-                    );
-                }
-
-                default ->
-                        cb.disjunction();
-            };
+            return cb.disjunction();
         };
     }
-
-
 
     public static Specification<User> hasRole(String role) {
         return (root, query, cb) -> {
-            if (role == null) return null;
-            return cb.equal(root.get("role").get("name"), role);
+
+            if (role == null || role.isBlank()) {
+                return cb.conjunction();
+            }
+
+            // Only SUPER_ADMIN can filter ADMIN
+            if ("ADMIN".equals(role) && !SecurityUtil.isSuperAdmin()) {
+                return cb.disjunction();
+            }
+
+            return cb.equal(root.join("role").get("name"), role);
         };
     }
+
 
     public static Specification<User> keyword(String keyword) {
         return (root, query, cb) -> {

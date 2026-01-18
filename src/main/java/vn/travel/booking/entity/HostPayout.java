@@ -2,12 +2,16 @@ package vn.travel.booking.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import vn.travel.booking.util.constant.PayoutStatus;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "host_payouts")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @Builder
@@ -30,6 +34,16 @@ public class HostPayout {
     private PayoutStatus status;
     // PENDING, PAID, FAILED, HOLD
 
+    private Instant createdAt;
+    private Instant updatedAt;
+
+    @CreatedBy
+    @Column(updatable = false)
+    private String createdBy;
+
+    @LastModifiedBy
+    private String updatedBy;
+
     private Instant paidAt;
     private String transactionRef;
 
@@ -40,6 +54,12 @@ public class HostPayout {
     @ManyToOne
     @JoinColumn(name = "contract_id")
     private HostContract contract;
+
+    @PrePersist
+    public void prePersist() { this.createdAt = Instant.now(); }
+
+    @PreUpdate
+    public void preUpdate() { this.updatedAt = Instant.now(); }
 
 }
 

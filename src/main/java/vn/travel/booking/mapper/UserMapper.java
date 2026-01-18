@@ -18,6 +18,9 @@ public class UserMapper {
         res.setAge(user.getAge());
         res.setCreatedAt(user.getCreatedAt());
         res.setUpdatedAt(user.getUpdatedAt());
+        res.setCreatedBy(user.getCreatedBy());
+        res.setUpdatedBy(user.getUpdatedBy());
+        res.setStatus(user.getStatus());
 
         ResUserDTO.Role role = new ResUserDTO.Role();
         role.setId(user.getRole().getId());

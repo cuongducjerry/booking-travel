@@ -3,6 +3,7 @@ package vn.travel.booking.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -97,6 +98,8 @@ public class UserService {
     @Transactional
     public ResUserDTO handleCreateUser(ReqCreateUserDTO req) {
 
+        String currentRole = SecurityUtil.getCurrentUserRole(); // SUPER_ADMIN / ADMIN
+
         // 1. check email
         if (this.isEmailExist(req.getEmail())) {
             throw new IdInvalidException(
@@ -110,6 +113,18 @@ public class UserService {
             throw new IdInvalidException("Role không tồn tại");
         }
 
+        if (SecurityUtil.isAdmin()) {
+            if (!List.of("USER", "HOST").contains(role.getName())) {
+                throw new AccessDeniedException(
+                        "ADMIN chỉ được tạo USER hoặc HOST"
+                );
+            }
+        }
+
+        if (!SecurityUtil.isAdmin() && !SecurityUtil.isSuperAdmin()) {
+            throw new AccessDeniedException("Không có quyền tạo user");
+        }
+
         // 3. map Req → Entity
         User user = new User();
         user.setEmail(req.getEmail());
@@ -118,6 +133,7 @@ public class UserService {
         user.setAddress(req.getAddress());
         user.setAge(req.getAge());
         user.setActive(true);
+
 
         // 4. business default
         user.setStatus(StatusUser.APPROVED);
@@ -159,7 +175,7 @@ public class UserService {
         String email = SecurityUtil.getCurrentUserLogin()
                 .orElseThrow(() -> new UnauthenticatedException("Bạn chưa đăng nhập"));
 
-        User currentUser = this.userRepository.findByEmailAndActiveTrue(email);
+        User currentUser = this.userRepository.findByEmail(email);
         if(currentUser == null) {
             throw new UnauthenticatedException("User với email = " + email + " không tồn tại");
         }
@@ -179,7 +195,7 @@ public class UserService {
         String email = SecurityUtil.getCurrentUserLogin()
                 .orElseThrow(() -> new UnauthenticatedException("Bạn chưa đăng nhập"));
 
-        User currentUser = this.userRepository.findByEmailAndActiveTrue(email);
+        User currentUser = this.userRepository.findByEmail(email);
         if(currentUser == null) {
             throw new UnauthenticatedException("User với email = " + email + " không tồn tại");
         }
@@ -213,6 +229,9 @@ public class UserService {
         return this.userMapper.convertToResUpdateUserStatusDTO(user);
     }
 
+    public User getUserByRefreshTokenAndEmail(String token, String email) {
+        return this.userRepository.findByRefreshTokenAndEmail(token, email);
+    }
 
     public ResUserDTO viewUserById(long userId) {
 
@@ -239,7 +258,7 @@ public class UserService {
     }
 
     public User handleGetUserByUsername(String username){
-        return this.userRepository.findByEmailAndActiveTrue(username);
+        return this.userRepository.findByEmail(username);
     }
 
     public User fetchUserById(long id){
@@ -249,7 +268,7 @@ public class UserService {
     }
 
     public boolean isEmailExist(String email){
-        return this.userRepository.existsByEmailAndActiveTrue(email);
+        return this.userRepository.existsByEmail(email);
     }
 
     @Transactional

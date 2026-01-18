@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import vn.travel.booking.util.constant.StatusUser;
 
 import java.time.Instant;
@@ -15,6 +18,7 @@ import java.util.List;
 @Table(name = "users")
 @SQLDelete(sql = "UPDATE users SET active = false WHERE id = ?")
 @Where(clause = "active = true")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @Builder
@@ -51,7 +55,12 @@ public class User {
 
     private Instant createdAt;
     private Instant updatedAt;
+
+    @CreatedBy
+    @Column(updatable = false)
     private String createdBy;
+
+    @LastModifiedBy
     private String updatedBy;
 
     @ManyToOne

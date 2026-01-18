@@ -8,8 +8,10 @@ import vn.travel.booking.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
-    boolean existsByEmailAndActiveTrue(String email);
+    boolean existsByEmail(String email);
 
-    User findByEmailAndActiveTrue(String username);
+    User findByEmail(String username);
+
+    User findByRefreshTokenAndEmail(String token, String email);
 
 }
