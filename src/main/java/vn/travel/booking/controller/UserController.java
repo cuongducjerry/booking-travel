@@ -8,22 +8,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import vn.travel.booking.dto.request.user.ReqCreateUserDTO;
-import vn.travel.booking.dto.request.user.ReqUpdatePasswordDTO;
-import vn.travel.booking.dto.request.user.ReqUpdateProfileUserDTO;
+import vn.travel.booking.dto.request.user.*;
+import vn.travel.booking.dto.response.user.*;
 import vn.travel.booking.dto.response.*;
-import vn.travel.booking.dto.response.user.ResUpdateAvatarUserDTO;
-import vn.travel.booking.dto.response.user.ResUpdatePasswordDTO;
-import vn.travel.booking.dto.response.user.ResUpdateProfileUserDTO;
-import vn.travel.booking.dto.response.user.ResUserDTO;
 import vn.travel.booking.entity.User;
 import vn.travel.booking.service.UserService;
 import vn.travel.booking.specification.UserSpecification;
-import vn.travel.booking.util.SecurityUtil;
 import vn.travel.booking.util.annotation.ApiMessage;
-import vn.travel.booking.util.error.IdInvalidException;
-import vn.travel.booking.util.error.InvalidPasswordException;
-import vn.travel.booking.util.error.UnauthenticatedException;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -105,6 +96,28 @@ public class UserController {
                 .and(UserSpecification.keyword(keyword));
 
         ResultPaginationDTO res = userService.handleListUser(spec, pageable);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
+
+    @PutMapping("/users/{id}/roles")
+    @PreAuthorize("hasAuthority('USER_ASSIGN_ROLE')")
+    @ApiMessage("Assign users to roles")
+    public ResponseEntity<ResAssignRoleDTO> assignRole(
+            @PathVariable Long id,
+            @RequestBody ReqAssignRoleDTO roleDTO
+    ) {
+        ResAssignRoleDTO res = this.userService.handleAssignRole(id, roleDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
+
+    @PutMapping("/users/{id}/status")
+    @PreAuthorize("hasAuthority('USER_UPDATE_STATUS')")
+    @ApiMessage("Update user status)")
+    public ResponseEntity<ResUpdateUserStatusDTO> updateUserStatus(
+            @PathVariable long id,
+            @Valid @RequestBody ReqUpdateUserStatusDTO req
+    ) {
+        ResUpdateUserStatusDTO res = this.userService.handleUpdateUserStatus(id, req.getStatus());
         return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 

@@ -7,23 +7,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import vn.travel.booking.dto.request.user.ReqCreateUserDTO;
-import vn.travel.booking.dto.request.user.ReqUpdatePasswordDTO;
-import vn.travel.booking.dto.request.user.ReqUpdateProfileUserDTO;
+import vn.travel.booking.dto.request.user.*;
+import vn.travel.booking.dto.response.user.*;
 import vn.travel.booking.dto.response.*;
-import vn.travel.booking.dto.response.user.ResUpdateAvatarUserDTO;
-import vn.travel.booking.dto.response.user.ResUpdatePasswordDTO;
-import vn.travel.booking.dto.response.user.ResUpdateProfileUserDTO;
-import vn.travel.booking.dto.response.user.ResUserDTO;
 import vn.travel.booking.entity.Role;
 import vn.travel.booking.entity.User;
 import vn.travel.booking.mapper.PaginationMapper;
 import vn.travel.booking.mapper.UserMapper;
+import vn.travel.booking.repository.RoleRepository;
 import vn.travel.booking.repository.UserRepository;
 import vn.travel.booking.util.SecurityUtil;
 import vn.travel.booking.util.constant.RoleCode;
 import vn.travel.booking.util.constant.StatusUser;
-import vn.travel.booking.util.error.ForbiddenException;
 import vn.travel.booking.util.error.IdInvalidException;
 import vn.travel.booking.util.error.InvalidPasswordException;
 import vn.travel.booking.util.error.UnauthenticatedException;
@@ -40,6 +35,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final PaginationMapper paginationMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
 
     public UserService(
             UserRepository userRepository,
@@ -47,13 +43,15 @@ public class UserService {
             CloudinaryService cloudinaryService,
             UserMapper userMapper,
             PasswordEncoder passwordEncoder,
-            PaginationMapper paginationMapper) {
+            PaginationMapper paginationMapper,
+            RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.cloudinaryService = cloudinaryService;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.paginationMapper = paginationMapper;
+        this.roleRepository = roleRepository;
     }
 
     @Transactional
@@ -137,20 +135,14 @@ public class UserService {
 
     @Transactional
     public void handleDeleteUser(long id) {
-        User currentUser = this.fetchUserById(id);
-        if(currentUser == null) {
-            throw new IdInvalidException("User với id = " + id + " không tồn tại");
-        }
+        User currentUser = fetchUserById(id);
         this.userRepository.delete(currentUser);
     }
 
     @Transactional
     public ResUpdateProfileUserDTO handleUpdateProfileUser(ReqUpdateProfileUserDTO reqUser) {
 
-        User currentUser = this.fetchUserById(reqUser.getId());
-        if(currentUser == null) {
-            throw new IdInvalidException("User với id = " + reqUser.getId() + " không tồn tại");
-        }
+        User currentUser = fetchUserById(reqUser.getId());
 
         currentUser.setFullName(reqUser.getFullName());
         currentUser.setPhone(reqUser.getPhone());
@@ -203,13 +195,28 @@ public class UserService {
         return new ResUpdatePasswordDTO("Đổi mật khẩu thành công", currentUser.getUpdatedAt());
     }
 
+    @Transactional
+    public ResAssignRoleDTO handleAssignRole(long userId, ReqAssignRoleDTO roleDTO) {
+        User user = fetchUserById(userId);
+
+        Role role = this.roleRepository.findById(roleDTO.getRoleId())
+                .orElseThrow(() -> new IdInvalidException("Role với id = " + roleDTO.getRoleId() + " không tồn tại"));
+
+        user.setRole(role);
+        return this.userMapper.convertToResAssignRoleDTO(user, role);
+    }
+
+    @Transactional
+    public ResUpdateUserStatusDTO handleUpdateUserStatus(long userId, StatusUser reqStatusUser) {
+        User user = fetchUserById(userId);
+        user.setStatus(reqStatusUser);
+        return this.userMapper.convertToResUpdateUserStatusDTO(user);
+    }
+
 
     public ResUserDTO viewUserById(long userId) {
 
-        User targetUser = this.fetchUserById(userId);
-        if(targetUser == null) {
-            throw new IdInvalidException("User với id = " + userId + " không tồn tại");
-        }
+        User targetUser = fetchUserById(userId);
 
         return this.userMapper.convertToResUserDTO(targetUser);
     }
@@ -236,7 +243,7 @@ public class UserService {
     }
 
     public User fetchUserById(long id){
-        return userRepository.findById(id)
+        return this.userRepository.findById(id)
                 .orElseThrow(() ->
                         new IdInvalidException("User với id = " + id + " không tồn tại"));
     }
