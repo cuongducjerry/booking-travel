@@ -3,13 +3,15 @@ package vn.travel.booking.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-import vn.travel.booking.entity.Amenity;
+import vn.travel.booking.entity.PropertyType;
+
 import java.util.Optional;
 
 @Repository
-public interface AmenityRepository extends JpaRepository<Amenity, Long>, JpaSpecificationExecutor<Amenity> {
+public interface PropertyTypeRepository extends JpaRepository<PropertyType, Long>, JpaSpecificationExecutor<PropertyType> {
 
-    Optional<Amenity> findById(long id);
+    Optional<PropertyType> findById(long id);
 
     boolean existsByNameIgnoreCase(String name);
+
 }

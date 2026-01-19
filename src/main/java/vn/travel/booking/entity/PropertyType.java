@@ -3,6 +3,8 @@ package vn.travel.booking.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -13,6 +15,8 @@ import java.util.List;
 @Entity
 @Table(name = "property_types")
 @EntityListeners(AuditingEntityListener.class)
+@SQLDelete(sql = "UPDATE property_types SET active = false WHERE id = ?")
+@Where(clause = "active = true")
 @Getter
 @Setter
 @Builder

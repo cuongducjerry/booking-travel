@@ -37,7 +37,7 @@ public class AmenityService {
     @Transactional
     public ResAmenityDTO handleCreateAmenity(ReqCreateAmenityDTO req) {
 
-        if (this.amenityRepository.existsByName(req.getName())) {
+        if (this.amenityRepository.existsByNameIgnoreCase(req.getName())) {
             throw new NameInvalidException("Amenity đã tồn tại");
         }
 
@@ -51,8 +51,7 @@ public class AmenityService {
 
     @Transactional
     public ResAmenityDTO handleUpdateAmenity(ReqUpdateAmenityDTO req) {
-        Amenity amenity = this.amenityRepository.findById(req.getId())
-                .orElseThrow(() -> new IdInvalidException("Amenity với id = " + req.getId() + " không tồn tại"));
+        Amenity amenity = fetchById(req.getId());
         amenity.setName(req.getName());
         amenity.setIcon(req.getIcon());
 
@@ -61,10 +60,7 @@ public class AmenityService {
 
     @Transactional
     public void handleDeleteAmenity(long id) {
-        Amenity amenity = this.amenityRepository.findById(id)
-                .orElseThrow(() ->
-                        new IdInvalidException("Amenity với id = " + id + " không tồn tại")
-                );
+        Amenity amenity = fetchById(id);
         this.amenityRepository.delete(amenity);
     }
 
@@ -84,18 +80,14 @@ public class AmenityService {
         return res;
     }
 
-    public ResAmenityDTO viewRoleById(long id) {
-        Amenity amenity = this.amenityRepository.findById(id)
-                .orElseThrow(() ->
-                        new IdInvalidException("Amenity với id = " + id + " không tồn tại")
-                );
+    public ResAmenityDTO viewAmenityById(Long id) {
+        Amenity amenity = fetchById(id);
         return this.amenityMapper.convertToResAmenityDTO(amenity);
     }
 
-    public ResAmenityDTO viewAmenityById(Long id) {
-        Amenity amenity = this.amenityRepository.findById(id)
+    public Amenity fetchById(long id) {
+        return this.amenityRepository.findById(id)
                 .orElseThrow(() -> new IdInvalidException("Amenity với id = " + id + " không tồn tại"));
-        return this.amenityMapper.convertToResAmenityDTO(amenity);
     }
 
 }

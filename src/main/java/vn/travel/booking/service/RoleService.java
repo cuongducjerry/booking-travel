@@ -44,7 +44,7 @@ public class RoleService {
     }
 
     public Role fetchById(long id) {
-        return this.roleRepository.findByIdAndActiveTrue(id)
+        return this.roleRepository.findById(id)
                 .orElseThrow(() ->
                         new IdInvalidException("Role với id = " + id + " không tồn tại")
                 );
@@ -52,8 +52,8 @@ public class RoleService {
 
     @Transactional
     public ResRoleDTO handleCreateRole(ReqRoleDTO reqRoleDTO) {
-        if (roleRepository.existsByName(reqRoleDTO.getName())) {
-            throw new NameInvalidException("Role name already exists");
+        if (this.roleRepository.existsByNameIgnoreCase(reqRoleDTO.getName())) {
+            throw new NameInvalidException("Role name đã tồn tại");
         }
 
         Role role = new Role();
@@ -68,10 +68,7 @@ public class RoleService {
 
     @Transactional
     public ResRoleDTO handleUpdateRole(ReqRoleUpdateDTO reqRoleUpdateDTO) {
-        Role role = this.roleRepository.findById(reqRoleUpdateDTO.getId())
-                .orElseThrow(() ->
-                        new IdInvalidException("Role với id = " + reqRoleUpdateDTO.getId() + " không tồn tại")
-                );
+        Role role = fetchById(reqRoleUpdateDTO.getId());
 
         role.setName(reqRoleUpdateDTO.getName());
         role.setDescription(reqRoleUpdateDTO.getDescription());
@@ -82,19 +79,13 @@ public class RoleService {
 
     @Transactional
     public void handleDeleteRole(long id) {
-        Role role = this.roleRepository.findById(id)
-                .orElseThrow(() ->
-                        new IdInvalidException("Role với id = " + id + " không tồn tại")
-                );
+        Role role = fetchById(id);
         this.roleRepository.delete(role);
     }
 
     @Transactional
     public ResRoleDTO handleAssignPermissions(long roleId, ReqAssignPermissionDTO requestDTO) {
-        Role role = roleRepository.findByIdAndActiveTrue(roleId)
-                .orElseThrow(() ->
-                        new IdInvalidException("Role với id = " + roleId + " không tồn tại")
-                );
+        Role role = fetchById(roleId);
 
         if ("SUPER_ADMIN".equals(role.getName())) {
             throw new RuntimeException("Không thể thay đổi permission của SUPER_ADMIN");
@@ -131,10 +122,7 @@ public class RoleService {
     }
 
     public ResRoleDTO viewRoleById(long id) {
-        Role role = this.roleRepository.findById(id)
-                .orElseThrow(() ->
-                        new IdInvalidException("Role với id = " + id + " không tồn tại")
-                );
+        Role role = fetchById(id);
         return this.roleMapper.convertResRoleDTO(role);
     }
 
