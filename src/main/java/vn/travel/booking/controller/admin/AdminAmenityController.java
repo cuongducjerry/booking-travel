@@ -1,4 +1,4 @@
-package vn.travel.booking.controller;
+package vn.travel.booking.controller.admin;
 
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
@@ -11,20 +11,18 @@ import vn.travel.booking.dto.request.amenity.ReqCreateAmenityDTO;
 import vn.travel.booking.dto.request.amenity.ReqUpdateAmenityDTO;
 import vn.travel.booking.dto.response.ResultPaginationDTO;
 import vn.travel.booking.dto.response.amenity.ResAmenityDTO;
-import vn.travel.booking.dto.response.role.ResRoleDTO;
 import vn.travel.booking.entity.Amenity;
 import vn.travel.booking.service.AmenityService;
 import vn.travel.booking.specification.AmenitySpecification;
-import vn.travel.booking.specification.RoleSpecification;
 import vn.travel.booking.util.annotation.ApiMessage;
 
 @RestController
-@RequestMapping("/api/v1")
-public class AmenityController {
+@RequestMapping("/api/v1/admin")
+public class AdminAmenityController {
 
     private final AmenityService amenityService;
 
-    public AmenityController(AmenityService amenityService) {
+    public AdminAmenityController(AmenityService amenityService) {
         this.amenityService = amenityService;
     }
 

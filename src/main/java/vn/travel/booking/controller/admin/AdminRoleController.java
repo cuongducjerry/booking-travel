@@ -1,4 +1,4 @@
-package vn.travel.booking.controller;
+package vn.travel.booking.controller.admin;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -17,13 +17,14 @@ import vn.travel.booking.specification.RoleSpecification;
 import vn.travel.booking.util.annotation.ApiMessage;
 import vn.travel.booking.util.error.NameInvalidException;
 
+// superadmin
 @RestController
-@RequestMapping("/api/v1")
-public class RoleController {
+@RequestMapping("/api/v1/admin")
+public class AdminRoleController {
 
     private final RoleService roleService;
 
-    public RoleController(RoleService roleService) {
+    public AdminRoleController(RoleService roleService) {
         this.roleService = roleService;
     }
 

@@ -29,6 +29,7 @@ public class HostPayout {
     private double grossAmount;   // total booking amount
     private double commissionFee; // platform fees
     private double netAmount;      // money the host receives
+    private String currency;      // VND, USD
 
     @Enumerated(EnumType.STRING)
     private PayoutStatus status;

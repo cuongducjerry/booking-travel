@@ -7,6 +7,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import vn.travel.booking.util.constant.PropertyStatus;
 
 import java.time.Instant;
 import java.util.List;
@@ -30,7 +31,11 @@ public class Property {
     private String address;
     private String city;
     private double pricePerNight;
+    private String currency;
     private int maxGuests;
+
+    @Enumerated(EnumType.STRING)
+    private PropertyStatus status;
 
     @Builder.Default
     private boolean active = true;

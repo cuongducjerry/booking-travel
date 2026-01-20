@@ -1,4 +1,4 @@
-package vn.travel.booking.controller;
+package vn.travel.booking.controller.admin;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -16,13 +16,14 @@ import vn.travel.booking.specification.PropertyTypeSpecification;
 import vn.travel.booking.util.annotation.ApiMessage;
 import vn.travel.booking.util.error.NameInvalidException;
 
+// superadmin
 @RestController
-@RequestMapping("/api/v1")
-public class PropertyTypeController {
+@RequestMapping("/api/v1/admin")
+public class AdminPropertyTypeController {
 
     private final PropertyTypeService propertyTypeService;
 
-    public PropertyTypeController(PropertyTypeService propertyTypeService) {
+    public AdminPropertyTypeController(PropertyTypeService propertyTypeService) {
         this.propertyTypeService = propertyTypeService;
     }
 

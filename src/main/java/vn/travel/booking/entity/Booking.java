@@ -30,6 +30,7 @@ public class Booking {
     private LocalDate checkOut;
     private double pricePerNightSnapshot;
     private int nights;
+    private String currency;      // VND, USD
 
     private double grossAmount;      // total amount paid by customers
     private double commissionRate;   // snapshot at the time of booking

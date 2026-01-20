@@ -1,4 +1,4 @@
-package vn.travel.booking.controller;
+package vn.travel.booking.controller.admin;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -12,15 +12,15 @@ import vn.travel.booking.entity.Permission;
 import vn.travel.booking.service.PermissionService;
 import vn.travel.booking.specification.PermissionSpecification;
 import vn.travel.booking.util.annotation.ApiMessage;
-import vn.travel.booking.util.error.IdInvalidException;
 
+// superadmin
 @RestController
-@RequestMapping("/api/v1")
-public class PermissionController {
+@RequestMapping("/api/v1/admin")
+public class AdminPermissionController {
 
     private final PermissionService permissionService;
 
-    public PermissionController(PermissionService permissionService) {
+    public AdminPermissionController(PermissionService permissionService) {
         this.permissionService = permissionService;
     }
 

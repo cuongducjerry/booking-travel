@@ -26,20 +26,6 @@ public class UserSpecification {
                 return roleJoin.get("name").in("USER", "HOST");
             }
 
-            // HOST: Only users are involved in relation to their property
-            if (SecurityUtil.isHost()) {
-                Join<User, Booking> bookingJoin = root.join("bookings");
-                Join<Booking, Property> propertyJoin = bookingJoin.join("property");
-
-                return cb.and(
-                        cb.equal(roleJoin.get("name"), "USER"),
-                        cb.equal(
-                                propertyJoin.get("host").get("id"),
-                                currentUserId
-                        )
-                );
-            }
-
             return cb.disjunction();
         };
     }

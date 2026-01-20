@@ -1,4 +1,4 @@
-package vn.travel.booking.controller;
+package vn.travel.booking.controller.auth;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;

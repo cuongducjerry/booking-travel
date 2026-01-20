@@ -58,7 +58,8 @@ public class GlobalException {
 
     @ExceptionHandler({
             PermissionNotFoundException.class,
-            IllegalArgumentException.class
+            IllegalArgumentException.class,
+            ImageException.class
     })
     public ResponseEntity<RestResponse<Object>> handleBadRequest(Exception ex) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
