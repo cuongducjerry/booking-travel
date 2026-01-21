@@ -7,4 +7,5 @@ import vn.travel.booking.entity.PropertyImage;
 
 @Repository
 public interface PropertyImageRepository extends JpaRepository<PropertyImage, Long>, JpaSpecificationExecutor<PropertyImage> {
+    void deleteByImageUrlAndProperty_Id(String imageUrl, Long propertyId);
 }

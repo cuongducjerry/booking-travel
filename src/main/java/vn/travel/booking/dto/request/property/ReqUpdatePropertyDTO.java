@@ -2,6 +2,8 @@ package vn.travel.booking.dto.request.property;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class ReqUpdatePropertyDTO {
     private String title;
@@ -12,4 +14,5 @@ public class ReqUpdatePropertyDTO {
     private String currency;
     private int maxGuests;
     private Long propertyTypeId;
+    private List<Long> amenityIds;
 }

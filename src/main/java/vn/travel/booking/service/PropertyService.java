@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.travel.booking.dto.request.property.ReqCreatePropertyDTO;
 import vn.travel.booking.dto.request.property.ReqPropertyAmenityDTO;
 import vn.travel.booking.dto.request.property.ReqPropertyDecisionDTO;
+import vn.travel.booking.dto.request.property.ReqUpdatePropertyDTO;
 import vn.travel.booking.dto.response.ResultPaginationDTO;
 import vn.travel.booking.dto.response.property.ResPropertyDTO;
 import vn.travel.booking.dto.response.property.ResPropertyDetailDTO;
@@ -39,6 +40,7 @@ public class PropertyService {
     private final AmenityRepository amenityRepository;
     private final NotificationService notificationService;
     private final PaginationMapper paginationMapper;
+    private final PropertyImageService propertyImageService;
 
     public PropertyService(
             PropertyRepository propertyRepository,
@@ -47,7 +49,8 @@ public class PropertyService {
             PropertyMapper propertyMapper,
             AmenityRepository amenityRepository,
             NotificationService notificationService,
-            PaginationMapper paginationMapper) {
+            PaginationMapper paginationMapper,
+            PropertyImageService propertyImageService) {
         this.propertyRepository = propertyRepository;
         this.userService = userService;
         this.propertyTypeRepository = propertyTypeRepository;
@@ -55,6 +58,7 @@ public class PropertyService {
         this.amenityRepository = amenityRepository;
         this.notificationService = notificationService;
         this.paginationMapper = paginationMapper;
+        this.propertyImageService = propertyImageService;
     }
 
     public User getCurrentUser() {
@@ -66,6 +70,19 @@ public class PropertyService {
         return this.propertyRepository.findById(id)
                 .orElseThrow(() ->
                         new IdInvalidException("Property với id = " + id + " không tồn tại"));
+    }
+
+    private Property fetchAndCheckOwner(Long propertyId) {
+
+        Property property = fetchPropertyById(propertyId);
+
+        User current = getCurrentUser();
+
+        if (property.getHost().getId() != current.getId()) {
+            throw new AccessDeniedException("Bạn không phải chủ property này");
+        }
+
+        return property;
     }
 
     @Transactional
@@ -133,45 +150,91 @@ public class PropertyService {
     }
 
     @Transactional
+    public ResPropertyDetailDTO updateProperty(Long id, ReqUpdatePropertyDTO req) {
+
+        Property p = fetchAndCheckOwner(id);
+
+        // state rule
+        switch (p.getStatus()) {
+            case PENDING ->
+                    throw new BusinessException("Property đang chờ duyệt, không thể sửa");
+            case APPROVED ->
+                    p.setStatus(PropertyStatus.DRAFT); // edit approved => draft
+        }
+
+        if (req.getTitle() != null) p.setTitle(req.getTitle());
+        if (req.getDescription() != null) p.setDescription(req.getDescription());
+        if (req.getAddress() != null) p.setAddress(req.getAddress());
+        if (req.getCity() != null) p.setCity(req.getCity());
+        if (req.getCurrency() != null) p.setCurrency(req.getCurrency());
+        if (req.getPricePerNight() > 0) p.setPricePerNight(req.getPricePerNight());
+        if (req.getMaxGuests() > 0) p.setMaxGuests(req.getMaxGuests());
+
+        if (req.getAmenityIds() != null) {
+            p.setAmenities(amenityRepository.findByIdIn(req.getAmenityIds()));
+        }
+
+        return propertyMapper.convertToResPropertyDetailDTO(p);
+    }
+
+    @Transactional
     public void decideProperty(Long propertyId, ReqPropertyDecisionDTO req) {
 
         Property property = fetchPropertyById(propertyId);
 
-        if (property.getStatus() != PropertyStatus.PENDING && property.getStatus() != PropertyStatus.APPROVED) {
+        // Validate the valid status
+        if (property.getStatus() != PropertyStatus.PENDING &&
+                property.getStatus() != PropertyStatus.APPROVED) {
             throw new BusinessException("Property không ở trạng thái chờ quyết định");
         }
-
-        Notification noti = new Notification();
 
         switch (req.getDecision()) {
 
             case APPROVED -> {
+                // Set status
                 property.setStatus(PropertyStatus.APPROVED);
-                notificationService.notifyUser("Property được duyệt",
+
+                // APPLY IMAGE DRAFT (THE FINAL THING)
+                propertyImageService.applyDraft(propertyId);
+
+                // Notify host
+                notificationService.notifyUser(
+                        "Property được duyệt",
                         "Property của bạn đã được admin duyệt",
-                        property.getHost());
+                        property.getHost()
+                );
             }
 
             case REJECTED -> {
                 if (req.getReason() == null || req.getReason().isBlank()) {
                     throw new BusinessException("Phải có lý do khi từ chối");
                 }
+
                 property.setStatus(PropertyStatus.REJECTED);
-                notificationService.notifyUser("Property bị từ chối",
+
+                // DO NOT apply image draft
+                notificationService.notifyUser(
+                        "Property bị từ chối",
                         req.getReason(),
-                        property.getHost());
+                        property.getHost()
+                );
             }
 
             case DRAFT -> { // allow revision
                 property.setStatus(PropertyStatus.DRAFT);
-                notificationService.notifyUser("Property được chỉnh sửa",
+
+                // DO NOT apply image draft
+                notificationService.notifyUser(
+                        "Property được chỉnh sửa",
                         "Admin cho phép bạn chỉnh sửa property",
-                        property.getHost());
+                        property.getHost()
+                );
             }
 
             default -> throw new BusinessException("Decision không hợp lệ");
         }
     }
+
 
     public ResPropertyDetailDTO viewPropertyById(long propertyId) {
         Property property = fetchPropertyById(propertyId);

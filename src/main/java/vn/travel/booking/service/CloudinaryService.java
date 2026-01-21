@@ -3,6 +3,7 @@ package vn.travel.booking.service;
 import com.cloudinary.Cloudinary;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import vn.travel.booking.util.error.BusinessException;
 
 
 import java.io.IOException;
@@ -65,4 +66,31 @@ public class CloudinaryService {
             throw new RuntimeException("Upload ảnh thất bại", e);
         }
     }
+
+    /**
+     * Delete photos by URL
+     */
+    public void delete(String imageUrl) {
+
+        try {
+            String publicId = extractPublicId(imageUrl);
+            cloudinary.uploader().destroy(publicId, Map.of());
+
+        } catch (Exception e) {
+            throw new BusinessException("Delete image failed");
+        }
+    }
+
+    /**
+     * Get public_id from Cloudinary URL
+     * VD:
+     * https://res.cloudinary.com/xxx/image/upload/v123/properties/1/abc.jpg
+     * -> properties/1/abc
+     */
+    private String extractPublicId(String imageUrl) {
+
+        String noExt = imageUrl.substring(0, imageUrl.lastIndexOf("."));
+        return noExt.substring(noExt.indexOf("properties"));
+    }
+
 }

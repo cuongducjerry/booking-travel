@@ -43,14 +43,6 @@ public class HostPropertyController {
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
-    @GetMapping("/properties/{id}")
-    @PreAuthorize("hasAuthority('PROPERTY_VIEW')")
-    @ApiMessage("Fetch property by id")
-    public ResponseEntity<ResPropertyDetailDTO> getPropertyById(@PathVariable Long id) {
-        ResPropertyDetailDTO res = this.propertyService.viewPropertyById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(res);
-    }
-
     @PutMapping("/properties/{id}/submit")
     @PreAuthorize("hasAuthority('PROPERTY_SUBMIT')")
     @ApiMessage("Submit property for approval")
@@ -59,15 +51,15 @@ public class HostPropertyController {
         return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 
-//    @PutMapping("/properties/{id}")
-//    @PreAuthorize("hasAuthority('PROPERTY_UPDATE')")
-//    @ApiMessage("Update property information")
-//    public ResponseEntity<ResPropertyDetailDTO> updateProperty(
-//            @PathVariable Long id,
-//            @RequestBody ReqUpdatePropertyDTO req) {
-//
-//        ResPropertyDetailDTO res = propertyService.updateProperty(id, req);
-//        return ResponseEntity.ok(res);
-//    }
+    @PutMapping("/properties/{id}")
+    @PreAuthorize("hasAuthority('PROPERTY_UPDATE')")
+    @ApiMessage("Update property information")
+    public ResponseEntity<ResPropertyDetailDTO> updateProperty(
+            @PathVariable Long id,
+            @RequestBody ReqUpdatePropertyDTO req) {
+
+        ResPropertyDetailDTO res = propertyService.updateProperty(id, req);
+        return ResponseEntity.ok(res);
+    }
 
 }

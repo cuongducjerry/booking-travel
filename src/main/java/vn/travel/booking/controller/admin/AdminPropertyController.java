@@ -35,23 +35,4 @@ public class AdminPropertyController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/properties")
-    @PreAuthorize("hasAuthority('PROPERTY_LIST_ADMIN')")
-    @ApiMessage("Fetch all properties")
-    public ResponseEntity<ResultPaginationDTO> getAllProperty(
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String propertyType,
-            Pageable pageable
-    ) {
-
-        Specification<Property> spec = Specification
-                .where(PropertySpecification.hasTitle(title))
-                .and(PropertySpecification.hasStatus(status))
-                .and(PropertySpecification.hasPropertyType(propertyType));
-
-        ResultPaginationDTO res = propertyService.handleListProperty(spec, pageable);
-        return ResponseEntity.status(HttpStatus.OK).body(res);
-    }
-
 }

@@ -61,10 +61,6 @@ public class Property {
     @JoinColumn(name = "contract_id")
     private HostContract contract;
 
-    /* DRAFT JSON */
-    @Column(columnDefinition = "TEXT")
-    private String draftData;
-
     @ManyToOne
     @JoinColumn(name = "property_type_id")
     private PropertyType propertyType;
