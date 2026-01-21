@@ -6,6 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vn.travel.booking.dto.request.property.ReqCreatePropertyDTO;
 import vn.travel.booking.dto.request.property.ReqPropertyAmenityDTO;
+import vn.travel.booking.dto.request.property.ReqUpdatePropertyDTO;
 import vn.travel.booking.dto.response.property.ResPropertyDTO;
 import vn.travel.booking.dto.response.property.ResPropertyDetailDTO;
 import vn.travel.booking.service.PropertyService;
@@ -42,6 +43,14 @@ public class HostPropertyController {
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
+    @GetMapping("/properties/{id}")
+    @PreAuthorize("hasAuthority('PROPERTY_VIEW')")
+    @ApiMessage("Fetch property by id")
+    public ResponseEntity<ResPropertyDetailDTO> getPropertyById(@PathVariable Long id) {
+        ResPropertyDetailDTO res = this.propertyService.viewPropertyById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
+
     @PutMapping("/properties/{id}/submit")
     @PreAuthorize("hasAuthority('PROPERTY_SUBMIT')")
     @ApiMessage("Submit property for approval")
@@ -49,5 +58,16 @@ public class HostPropertyController {
         ResPropertyDetailDTO res = this.propertyService.submitForApproval(id);
         return ResponseEntity.status(HttpStatus.OK).body(res);
     }
+
+//    @PutMapping("/properties/{id}")
+//    @PreAuthorize("hasAuthority('PROPERTY_UPDATE')")
+//    @ApiMessage("Update property information")
+//    public ResponseEntity<ResPropertyDetailDTO> updateProperty(
+//            @PathVariable Long id,
+//            @RequestBody ReqUpdatePropertyDTO req) {
+//
+//        ResPropertyDetailDTO res = propertyService.updateProperty(id, req);
+//        return ResponseEntity.ok(res);
+//    }
 
 }

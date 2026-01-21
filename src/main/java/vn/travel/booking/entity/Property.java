@@ -27,7 +27,10 @@ public class Property {
     private long id;
 
     private String title;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
+
     private String address;
     private String city;
     private double pricePerNight;
@@ -57,6 +60,10 @@ public class Property {
     @ManyToOne
     @JoinColumn(name = "contract_id")
     private HostContract contract;
+
+    /* DRAFT JSON */
+    @Column(columnDefinition = "TEXT")
+    private String draftData;
 
     @ManyToOne
     @JoinColumn(name = "property_type_id")

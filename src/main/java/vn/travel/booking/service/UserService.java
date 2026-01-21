@@ -267,6 +267,10 @@ public class UserService {
                         new IdInvalidException("User với id = " + id + " không tồn tại"));
     }
 
+    public List<User> getAllAdmins() {
+        return userRepository.findAllAdmins();
+    }
+
     public boolean isEmailExist(String email){
         return this.userRepository.existsByEmail(email);
     }

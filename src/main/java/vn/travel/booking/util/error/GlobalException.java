@@ -24,7 +24,8 @@ public class GlobalException {
 
     @ExceptionHandler({
             NameInvalidException.class,
-            InvalidPasswordException.class
+            InvalidPasswordException.class,
+            BusinessException.class
     })
     public ResponseEntity<RestResponse<Object>> handleBusiness(Exception ex) {
         return build(HttpStatus.CONFLICT, ex.getMessage());
