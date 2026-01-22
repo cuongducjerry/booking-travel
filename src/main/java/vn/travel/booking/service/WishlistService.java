@@ -104,7 +104,7 @@ public class WishlistService {
     private Wishlist findWishlistOrThrow(Long userId, Long propertyId) {
         return wishlistRepository
                 .findByUser_IdAndProperty_Id(userId, propertyId)
-                .orElseThrow(() -> new RuntimeException("Wishlist not found"));
+                .orElseThrow(() -> new RuntimeException("Wishlist không tồn tại!"));
     }
 
     private Wishlist buildWishlist(Long userId, Long propertyId) {
@@ -120,12 +120,12 @@ public class WishlistService {
 
     private User getUser(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IdInvalidException("User not found"));
+                .orElseThrow(() -> new IdInvalidException("User với id = " + userId + " không tồn tại!"));
     }
 
     private Property getProperty(Long propertyId) {
         return propertyRepository.findById(propertyId)
-                .orElseThrow(() -> new RuntimeException("Property not found"));
+                .orElseThrow(() -> new RuntimeException("Property với id = " + propertyId + " không tồn tại!"));
     }
 
 }
