@@ -3,6 +3,7 @@ package vn.travel.booking.mapper;
 import org.springframework.stereotype.Component;
 import vn.travel.booking.dto.response.property.ResPropertyDTO;
 import vn.travel.booking.dto.response.property.ResPropertyDetailDTO;
+import vn.travel.booking.dto.response.property.ResPropertyWishlistDTO;
 import vn.travel.booking.entity.Property;
 import vn.travel.booking.entity.PropertyImage;
 import vn.travel.booking.entity.User;
@@ -93,5 +94,20 @@ public class PropertyMapper {
         return dto;
     }
 
+    public ResPropertyWishlistDTO convertToResPropertyWishlistDTO(Property property) {
+        ResPropertyWishlistDTO dto = new ResPropertyWishlistDTO();
+        dto.setPropertyId(property.getId());
+        dto.setPropertyName(property.getTitle());
+        dto.setAddress(property.getAddress());
+
+        String imageUrl = property.getImages()
+                .stream()
+                .findFirst()
+                .map(PropertyImage::getImageUrl)
+                .orElse(null);
+
+        dto.setImageUrl(imageUrl);
+        return dto;
+    }
 
 }
