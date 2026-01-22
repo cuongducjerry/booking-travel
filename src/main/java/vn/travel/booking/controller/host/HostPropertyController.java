@@ -62,4 +62,12 @@ public class HostPropertyController {
         return ResponseEntity.ok(res);
     }
 
+    @DeleteMapping("/properties/{id}")
+    @PreAuthorize("hasAuthority('PROPERTY_DELETE')")
+    @ApiMessage("Host delete property")
+    public ResponseEntity<Void> deleteProperty(@PathVariable Long id) {
+        this.propertyService.hostDeleteProperty(id);
+        return ResponseEntity.ok().build();
+    }
+
 }

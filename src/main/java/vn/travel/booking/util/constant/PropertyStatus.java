@@ -5,4 +5,6 @@ public enum PropertyStatus {
     PENDING,      // Awaiting admin approval
     APPROVED,     // Approved to display
     REJECTED,     // Rejected
+    DELETE_PENDING,
+    DELETED
 }

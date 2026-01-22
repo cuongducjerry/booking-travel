@@ -236,6 +236,53 @@ public class PropertyService {
     }
 
 
+    @Transactional
+    public void hostDeleteProperty(Long propertyId) {
+
+        Property property = fetchPropertyById(propertyId);
+        checkOwnership(property);
+
+        // Booking is available -> cannot be deleted.
+        if (!property.getBookings().isEmpty()) {
+            throw new BusinessException("Property đã có booking, không thể xóa");
+        }
+
+        // CASE 1: DRAFT -> soft delete
+        if (property.getStatus() == PropertyStatus.DRAFT) {
+            property.setStatus(PropertyStatus.DELETED);
+            propertyRepository.delete(property);
+            return;
+        }
+
+        // CASE 2: APPROVED -> send admin
+        if (property.getStatus() == PropertyStatus.APPROVED) {
+            property.setStatus(PropertyStatus.DELETE_PENDING);
+
+            notificationService.notifyAdmins(
+                    "Yêu cầu xóa property",
+                    "Host yêu cầu xóa property: " + property.getTitle()
+            );
+            return;
+        }
+
+        throw new BusinessException("Không thể xóa property ở trạng thái hiện tại");
+    }
+
+
+    @Transactional
+    public void adminApproveDelete(Long propertyId) {
+
+        Property property = fetchPropertyById(propertyId);
+
+        if (property.getStatus() != PropertyStatus.DELETE_PENDING) {
+            throw new BusinessException("Property không ở trạng thái chờ xóa");
+        }
+
+        // soft delete
+        propertyRepository.delete(property);
+    }
+
+
     public ResPropertyDetailDTO viewPropertyById(long propertyId) {
         Property property = fetchPropertyById(propertyId);
         return this.propertyMapper.convertToResPropertyDetailDTO(property);

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -14,6 +16,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "properties")
+@SQLDelete(sql = "UPDATE properties SET active = false, status = 'DELETED' WHERE id = ?")
+@Where(clause = "active = true")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter

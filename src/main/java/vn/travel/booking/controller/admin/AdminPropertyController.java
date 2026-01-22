@@ -35,4 +35,12 @@ public class AdminPropertyController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/properties/{id}/approve-delete")
+    @PreAuthorize("hasAuthority('PROPERTY_DELETE_APPROVE')")
+    @ApiMessage("Admin approve delete property")
+    public ResponseEntity<Void> approveDelete(@PathVariable Long id) {
+        this.propertyService.adminApproveDelete(id);
+        return ResponseEntity.ok().build();
+    }
+
 }
