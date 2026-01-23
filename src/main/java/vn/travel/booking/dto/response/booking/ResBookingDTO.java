@@ -1,0 +1,37 @@
+package vn.travel.booking.dto.response.booking;
+
+import lombok.Data;
+
+import java.time.Instant;
+import java.time.LocalDate;
+
+@Data
+public class ResBookingDTO {
+    private long id;
+
+    private LocalDate checkIn;
+    private LocalDate checkOut;
+    private int nights;
+
+    private double pricePerNightSnapshot;
+    private String currency;
+
+    private double grossAmount;
+    private double commissionRate;
+    private double commissionFee;
+    private double hostEarning;
+
+    private String status; // NEW, CONFIRMED, CANCELLED, DONE
+
+    private Instant createdAt;
+    private Instant updatedAt;
+
+    // ---- User info  ----
+    private Long userId;
+    private String userName;
+    private String userEmail;
+
+    // ---- Property info ----
+    private Long propertyId;
+    private String propertyName;
+}

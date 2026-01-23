@@ -2,3 +2,9 @@ cloudinary:
   cloud-name: diarx01m7
   api-key: 854298752232279
   api-secret: IRwIP5dqGKRKMBJ5KOw1zWXo84I
+
+#vnpay:
+#  tmnCode: RM3JILKH
+#  hashSecret: MSC75S3AFHAHHOPYFQIDJ74KZLJ0UUHA
+#  payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+#  returnUrl: http://localhost:8081/api/v1/payments/vnpay-callback
