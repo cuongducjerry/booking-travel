@@ -26,7 +26,12 @@ public class Payment {
 
     private String paymentMethod;
     private double amount;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private PaymentStatus status; // PENDING, SUCCESS, FAILED
+
     private String providerTxnId; // Transaction code from VNPay/Stripe
     private String currency;      // VND, USD
 
