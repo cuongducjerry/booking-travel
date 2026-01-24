@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import vn.travel.booking.util.constant.PaymentMethod;
 import vn.travel.booking.util.constant.PaymentStatus;
 
 import java.time.Instant;
@@ -24,7 +25,10 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentMethod paymentMethod;
+
     private double amount;
 
 

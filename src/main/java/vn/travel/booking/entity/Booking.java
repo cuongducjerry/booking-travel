@@ -9,6 +9,7 @@ import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import vn.travel.booking.util.constant.BookingStatus;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -41,7 +42,9 @@ public class Booking {
     private double commissionFee;
     private double hostEarning;
 
-    private String status; // NEW, CONFIRMED, CANCELLED, DONE
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private BookingStatus status; // NEW, CONFIRMED, CANCELLED, DONE
 
     @Builder.Default
     private boolean active = true;

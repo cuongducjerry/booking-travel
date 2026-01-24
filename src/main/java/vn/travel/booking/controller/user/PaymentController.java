@@ -24,13 +24,24 @@ public class PaymentController {
 
     @PostMapping("/{bookingId}/vnpay")
     @PreAuthorize("hasAuthority('PAYMENT_CREATE')")
-    @ApiMessage("Create a new payment")
+    @ApiMessage("Create a new vnpay payment")
     public ResponseEntity<ResCreatePaymentDTO> pay(
             @PathVariable Long bookingId,
             HttpServletRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.createPayment(bookingId, request));
     }
+
+    @PostMapping("/{bookingId}/pay-at-property")
+    @PreAuthorize("hasAuthority('PAYMENT_CREATE')")
+    @ApiMessage("Create cash payment")
+    public ResponseEntity<ResCreatePaymentDTO> payAtProperty(
+            @PathVariable Long bookingId
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(paymentService.createCashPayment(bookingId));
+    }
+
 
 //    @GetMapping("/vnpay-callback")
 //    @PreAuthorize("hasAuthority('PAYMENT_CALLBACK')")

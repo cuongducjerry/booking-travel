@@ -16,6 +16,8 @@ import vn.travel.booking.repository.BookingRepository;
 import vn.travel.booking.repository.PropertyRepository;
 import vn.travel.booking.repository.UserRepository;
 import vn.travel.booking.util.SecurityUtil;
+import vn.travel.booking.util.constant.BookingStatus;
+import vn.travel.booking.util.error.BusinessException;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -92,7 +94,7 @@ public class BookingService {
                 .commissionFee(commissionFee)
                 .hostEarning(gross - commissionFee)
                 .currency(property.getCurrency())
-                .status("NEW")
+                .status(BookingStatus.NEW)
                 .active(true)
                 .build();
 
@@ -115,8 +117,8 @@ public class BookingService {
         }
 
         // check status
-        if (!booking.getStatus().equals("NEW")
-                && !booking.getStatus().equals("CONFIRMED")) {
+        if (!booking.getStatus().equals(BookingStatus.NEW)
+                && !booking.getStatus().equals(BookingStatus.CONFIRMED)) {
             throw new RuntimeException("Không thể hủy booking");
         }
 
@@ -125,7 +127,7 @@ public class BookingService {
             throw new RuntimeException("Đã quá hạn hủy booking");
         }
 
-        booking.setStatus("CANCELLED");
+        booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
     }
 
@@ -138,8 +140,8 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
 
         // không cho xóa booking đang chạy
-        if (booking.getStatus().equals("NEW")
-                || booking.getStatus().equals("CONFIRMED")) {
+        if (booking.getStatus().equals(BookingStatus.NEW)
+                || booking.getStatus().equals(BookingStatus.CONFIRMED)) {
             throw new RuntimeException("Không thể xóa booking đang hoạt động");
         }
 
@@ -150,6 +152,36 @@ public class BookingService {
 
         bookingRepository.delete(booking);
     }
+
+    public ResBookingDTO getBookingDetail(Long bookingId) {
+
+        Long userId = SecurityUtil.getCurrentUserId();
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+
+        // Permissions:
+        // - ADMIN: View all bookings
+        // - USER: View only their own bookings
+        // - HOST: View only bookings for properties they own (if they have the host role)
+        if (!SecurityUtil.isAdmin()) {
+
+            // customer
+            if (booking.getUser().getId() == userId) {
+                // OK
+            }
+            // host
+            else if (SecurityUtil.isHost() && booking.getProperty().getHost().getId() == (userId)) {
+                // OK
+            }
+            else {
+                throw new BusinessException("Không có quyền xem booking này");
+            }
+        }
+
+        return bookingMapper.convertToResBookingDTO(booking);
+    }
+
 
     public ResultPaginationDTO getMyBookings(Pageable pageable) {
 

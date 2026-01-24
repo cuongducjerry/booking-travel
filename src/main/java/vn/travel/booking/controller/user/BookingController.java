@@ -30,7 +30,7 @@ public class BookingController {
     }
 
     @GetMapping("/my-booking")
-    @PreAuthorize("hasAuthority('BOOKING_VIEW_PERSONAL')")
+    @PreAuthorize("hasAuthority('BOOKING_LIST_PERSONAL')")
     @ApiMessage("Retrieve your own booking")
     public ResponseEntity<ResultPaginationDTO> myBookings(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).body(bookingService.getMyBookings(pageable));
@@ -50,6 +50,13 @@ public class BookingController {
     public ResponseEntity<Void> delete(@PathVariable Long bookingId) {
         bookingService.deleteBooking(bookingId);
         return ResponseEntity.status(HttpStatus.OK).body(null);
+    }
+
+    @GetMapping("/{bookingId}")
+    @PreAuthorize("hasAuthority('BOOKING_VIEW_DETAIL')")
+    @ApiMessage("Retrieve booking detail")
+    public ResponseEntity<ResBookingDTO> getDetail(@PathVariable Long bookingId) {
+        return ResponseEntity.ok(bookingService.getBookingDetail(bookingId));
     }
 
 }

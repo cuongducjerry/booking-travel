@@ -1,6 +1,7 @@
 package vn.travel.booking.dto.response.booking;
 
 import lombok.Data;
+import vn.travel.booking.util.constant.BookingStatus;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -21,7 +22,7 @@ public class ResBookingDTO {
     private double commissionFee;
     private double hostEarning;
 
-    private String status; // NEW, CONFIRMED, CANCELLED, DONE
+    private BookingStatus status; // NEW, CONFIRMED, CANCELLED, DONE
 
     private Instant createdAt;
     private Instant updatedAt;

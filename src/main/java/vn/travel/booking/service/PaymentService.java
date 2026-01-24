@@ -12,7 +12,11 @@ import vn.travel.booking.entity.Payment;
 import vn.travel.booking.mapper.PaymentMapper;
 import vn.travel.booking.repository.BookingRepository;
 import vn.travel.booking.repository.PaymentRepository;
+import vn.travel.booking.util.constant.BookingStatus;
+import vn.travel.booking.util.constant.PaymentMethod;
 import vn.travel.booking.util.constant.PaymentStatus;
+import vn.travel.booking.util.error.BusinessException;
+import vn.travel.booking.util.error.IdInvalidException;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -48,7 +52,7 @@ public class PaymentService {
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() ->
-                        new RuntimeException("Booking với id = " + bookingId + " không tồn tại"));
+                        new IdInvalidException("Booking với id = " + bookingId + " không tồn tại"));
 
         String txnRef = UUID.randomUUID().toString().replace("-", "");
 
@@ -56,7 +60,7 @@ public class PaymentService {
                 .booking(booking)
                 .amount(booking.getGrossAmount())
                 .currency(booking.getCurrency())
-                .paymentMethod("VNPAY")
+                .paymentMethod(PaymentMethod.VNPAY)
                 .providerTxnId(txnRef)
                 .status(PaymentStatus.PENDING)
                 .build();
@@ -66,6 +70,40 @@ public class PaymentService {
 //        String urlPay = vnPayService.createPaymentUrl(payment, request);
         return paymentMapper.toResCreatePaymentDTO("Tạo payment url vnpay thành công!");
     }
+
+    @Transactional
+    public ResCreatePaymentDTO createCashPayment(Long bookingId) {
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() ->
+                        new IdInvalidException("Booking với id = " + bookingId + " không tồn tại"));
+
+        // optional: Block if payment has already been successfully received for the booking.
+        boolean hasPaid = paymentRepository
+                .existsByBooking_IdAndStatus(bookingId, PaymentStatus.SUCCESS);
+
+        if (hasPaid) {
+            throw new BusinessException("Booking đã được thanh toán");
+        }
+
+        Payment payment = Payment.builder()
+                .booking(booking)
+                .amount(booking.getGrossAmount())
+                .currency(booking.getCurrency())
+                .paymentMethod(PaymentMethod.CASH)
+                .status(PaymentStatus.PENDING) // Wait to pay upon arrival.
+                .build();
+
+        paymentRepository.save(payment);
+
+        booking.setStatus(BookingStatus.CONFIRMED);
+        bookingRepository.save(booking);
+
+        return paymentMapper.toResCreatePaymentDTO(
+                "Đã tạo booking - Thanh toán khi đến"
+        );
+    }
+
 
     /* ========== CALLBACK HANDLER ========== */
 //    @Transactional
@@ -130,7 +168,7 @@ public class PaymentService {
     public ResCallBackPayDTO mockCallback(Long paymentId, boolean success) {
 
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+                .orElseThrow(() -> new BusinessException("Payment not found"));
 
         if (payment.getStatus() == PaymentStatus.SUCCESS) {
             return paymentMapper.toResCallBackPayDTO("ALREADY PROCESSED");
@@ -140,7 +178,7 @@ public class PaymentService {
             payment.setStatus(PaymentStatus.SUCCESS);
 
             Booking booking = payment.getBooking();
-            booking.setStatus("CONFIRMED");
+            booking.setStatus(BookingStatus.CONFIRMED);
 
             bookingRepository.save(booking);
             paymentRepository.save(payment);
