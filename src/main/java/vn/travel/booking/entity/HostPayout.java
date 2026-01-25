@@ -8,6 +8,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import vn.travel.booking.util.constant.PayoutStatus;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "host_payouts")
@@ -23,8 +26,8 @@ public class HostPayout {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private Instant periodFrom;
-    private Instant periodTo;
+    private LocalDate periodFrom;
+    private LocalDate periodTo;
 
     private double grossAmount;   // total booking amount
     private double commissionFee; // platform fees
@@ -55,6 +58,10 @@ public class HostPayout {
     @ManyToOne
     @JoinColumn(name = "contract_id")
     private HostContract contract;
+
+    @OneToMany(mappedBy = "payout", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<HostPayoutItem> items = new ArrayList<>();
 
     @PrePersist
     public void prePersist() { this.createdAt = Instant.now(); }

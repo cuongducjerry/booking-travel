@@ -20,6 +20,7 @@ import vn.travel.booking.util.error.BusinessException;
 import vn.travel.booking.util.error.IdInvalidException;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -179,8 +180,8 @@ public class HostContractService {
         contract.setSignedAt(Instant.now());
 
         // Optional: if startDate < now then set = now
-        if (contract.getStartDate().isBefore(Instant.now())) {
-            contract.setStartDate(Instant.now());
+        if (contract.getStartDate().isBefore(LocalDate.now())) {
+            contract.setStartDate(LocalDate.now());
         }
 
         hostContractRepository.save(contract);
@@ -230,9 +231,11 @@ public class HostContractService {
             throw new BusinessException("Đã có hợp đồng đang xử lý");
         }
 
-        // START DATE: hệ thống tự tính
-        Instant startDate = now.isAfter(oldContract.getEndDate())
-                ? now
+        LocalDate today = LocalDate.now();
+
+        // START DATE
+        LocalDate startDate = today.isAfter(oldContract.getEndDate())
+                ? today
                 : oldContract.getEndDate();
 
         // END DATE validation

@@ -8,6 +8,7 @@ import vn.travel.booking.repository.HostContractRepository;
 import vn.travel.booking.util.constant.ContractStatus;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -22,7 +23,7 @@ public class ContractExpireJob {
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Ho_Chi_Minh")  // every day 0h
     @Transactional
     public void expireContracts() {
-        Instant now = Instant.now();
+        LocalDate now = LocalDate.now();
         List<HostContract> contracts = repo.findExpiredActiveContracts(now);
 
         for (HostContract c : contracts) {

@@ -39,9 +39,9 @@ public class ContractMapper {
 
         // properties
         List<ResContractDTO.ResPropDTO> propDTOs =
-                contract.getProperties() == null
+                contract.getHost().getProperties() == null
                         ? List.of()
-                        : contract.getProperties().stream()
+                        : contract.getHost().getProperties().stream()
                         .map(p -> {
                             ResContractDTO.ResPropDTO rp =
                                     new ResContractDTO.ResPropDTO();

@@ -5,6 +5,7 @@ import vn.travel.booking.dto.response.property.ResPropertyDTO;
 import vn.travel.booking.util.constant.ContractStatus;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -15,8 +16,8 @@ public class ResContractDTO {
     private ContractStatus status;
     private double commissionRate;
 
-    private Instant startDate;
-    private Instant endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private Instant signedAt;
     private Instant terminatedAt;
     private String terminationReason;

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import vn.travel.booking.util.constant.ContractStatus;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -32,8 +33,8 @@ public class HostContract {
 
     private double commissionRate; // 0.15 = 15%
 
-    private Instant startDate;
-    private Instant endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private Instant signedAt;
     private Instant terminatedAt;
 

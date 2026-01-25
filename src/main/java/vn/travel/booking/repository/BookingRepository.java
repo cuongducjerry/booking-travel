@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import vn.travel.booking.entity.Booking;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -31,10 +32,45 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
           AND b.checkIn < :checkOut
           AND b.checkOut > :checkIn
     """)
+
     boolean existsOverlappingBooking(
             Long propertyId,
             LocalDate checkIn,
             LocalDate checkOut
+    );
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.status = 'DONE'
+          AND b.property.host.id = :hostId
+          AND b.property.contract.id = :contractId
+          AND b.checkOut >= :from
+          AND b.checkOut < :to
+          AND NOT EXISTS (
+              SELECT 1 FROM HostPayoutItem i
+              WHERE i.booking = b
+          )
+    """)
+    List<Booking> findDoneBookingsNotPayoutYet(
+            Long hostId,
+            Long contractId,
+            LocalDate from,
+            LocalDate to
+    );
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.status = 'DONE'
+          AND b.property.host.id = :hostId
+          AND b.checkOut BETWEEN :from AND :to
+          AND NOT EXISTS (
+              SELECT 1 FROM HostPayoutItem i WHERE i.booking = b
+          )
+    """)
+    List<Booking> findDoneBookingsForMonthlyPayout(
+            Long hostId,
+            LocalDate from,
+            LocalDate to
     );
 
 }

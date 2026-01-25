@@ -9,6 +9,7 @@ import vn.travel.booking.entity.HostContract;
 import vn.travel.booking.util.constant.ContractStatus;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +33,17 @@ public interface HostContractRepository extends JpaRepository<HostContract, Long
         WHERE c.status = 'ACTIVE'
           AND c.endDate < :now
     """)
-    List<HostContract> findExpiredActiveContracts(Instant now);
+    List<HostContract> findExpiredActiveContracts(LocalDate now);
+
+    @Query("""
+        SELECT c FROM HostContract c
+        WHERE c.status = 'ACTIVE'
+          AND c.endDate >= :periodTo
+    """)
+    List<HostContract> findActiveContractsValidForPayout(
+            LocalDate periodTo
+    );
+
+    List<HostContract> findByStatus(ContractStatus status);
 
 }
