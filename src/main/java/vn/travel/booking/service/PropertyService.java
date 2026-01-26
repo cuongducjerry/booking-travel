@@ -38,7 +38,6 @@ public class PropertyService {
     private final PropertyTypeRepository propertyTypeRepository;
     private final PropertyMapper propertyMapper;
     private final AmenityRepository amenityRepository;
-    private final NotificationService notificationService;
     private final PaginationMapper paginationMapper;
     private final PropertyImageService propertyImageService;
 
@@ -48,7 +47,6 @@ public class PropertyService {
             PropertyTypeRepository propertyTypeRepository,
             PropertyMapper propertyMapper,
             AmenityRepository amenityRepository,
-            NotificationService notificationService,
             PaginationMapper paginationMapper,
             PropertyImageService propertyImageService) {
         this.propertyRepository = propertyRepository;
@@ -56,7 +54,6 @@ public class PropertyService {
         this.propertyTypeRepository = propertyTypeRepository;
         this.propertyMapper = propertyMapper;
         this.amenityRepository = amenityRepository;
-        this.notificationService = notificationService;
         this.paginationMapper = paginationMapper;
         this.propertyImageService = propertyImageService;
     }
@@ -144,7 +141,6 @@ public class PropertyService {
         String title = "Property đang chờ kiểm duyệt từ bạn";
         String content = "Vào thư mục kiểm duyệt property để chấp nhận hoặc từ chối property: " + property.getTitle();
 
-        this.notificationService.notifyAdmins(title, content);
 
         return this.propertyMapper.convertToResPropertyDetailDTO(property);
     }
@@ -197,12 +193,6 @@ public class PropertyService {
                 // APPLY IMAGE DRAFT (THE FINAL THING)
                 propertyImageService.applyDraft(propertyId);
 
-                // Notify host
-                notificationService.notifyUser(
-                        "Property được duyệt",
-                        "Property của bạn đã được admin duyệt",
-                        property.getHost()
-                );
             }
 
             case REJECTED -> {
@@ -212,23 +202,11 @@ public class PropertyService {
 
                 property.setStatus(PropertyStatus.REJECTED);
 
-                // DO NOT apply image draft
-                notificationService.notifyUser(
-                        "Property bị từ chối",
-                        req.getReason(),
-                        property.getHost()
-                );
             }
 
             case DRAFT -> { // allow revision
                 property.setStatus(PropertyStatus.DRAFT);
 
-                // DO NOT apply image draft
-                notificationService.notifyUser(
-                        "Property được chỉnh sửa",
-                        "Admin cho phép bạn chỉnh sửa property",
-                        property.getHost()
-                );
             }
 
             default -> throw new BusinessException("Decision không hợp lệ");
@@ -257,11 +235,6 @@ public class PropertyService {
         // CASE 2: APPROVED -> send admin
         if (property.getStatus() == PropertyStatus.APPROVED) {
             property.setStatus(PropertyStatus.DELETE_PENDING);
-
-            notificationService.notifyAdmins(
-                    "Yêu cầu xóa property",
-                    "Host yêu cầu xóa property: " + property.getTitle()
-            );
             return;
         }
 

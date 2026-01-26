@@ -1,5 +1,6 @@
 package vn.travel.booking.repository;
 
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -23,5 +24,8 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
             WHERE r.name LIKE 'ADMIN%'
         """)
     List<User> findAllAdmins();
+
+    @Query("select u.email from User u where u.id = :userId")
+    String findEmailById(@Param("userId") Long userId);
 
 }

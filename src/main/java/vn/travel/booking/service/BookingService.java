@@ -15,8 +15,10 @@ import vn.travel.booking.mapper.PaginationMapper;
 import vn.travel.booking.repository.BookingRepository;
 import vn.travel.booking.repository.PropertyRepository;
 import vn.travel.booking.repository.UserRepository;
+import vn.travel.booking.service.notification.NotificationService;
 import vn.travel.booking.util.SecurityUtil;
 import vn.travel.booking.util.constant.BookingStatus;
+import vn.travel.booking.util.constant.NotificationType;
 import vn.travel.booking.util.error.BusinessException;
 
 import java.time.LocalDate;
@@ -32,17 +34,21 @@ public class BookingService {
     private final BookingMapper bookingMapper;
     private final PaginationMapper paginationMapper;
 
+    private final NotificationService notificationService;
+
     public BookingService(
             BookingRepository bookingRepository,
             UserRepository userRepository,
             PropertyRepository propertyRepository,
             BookingMapper bookingMapper,
-            PaginationMapper paginationMapper) {
+            PaginationMapper paginationMapper,
+            NotificationService notificationService) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.propertyRepository = propertyRepository;
         this.bookingMapper = bookingMapper;
         this.paginationMapper = paginationMapper;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -99,6 +105,18 @@ public class BookingService {
                 .build();
 
         bookingRepository.save(booking);
+
+        // NOTIFY HOST – New booking (send via email)
+        Long hostId = property.getHost().getId();
+
+        notificationService.notify(
+                hostId,
+                NotificationType.BOOKING,
+                "Có booking mới",
+                "Khách vừa đặt phòng từ "
+                        + booking.getCheckIn() + " đến " + booking.getCheckOut(),
+                true
+        );
 
         return this.bookingMapper.convertToResBookingDTO(booking);
     }

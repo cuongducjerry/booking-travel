@@ -27,10 +27,17 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
-	implementation("org.springframework.boot:spring-boot-starter-mail")
 	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
 	implementation("com.turkraft.springfilter:jpa:3.1.7")
 	implementation ("com.cloudinary:cloudinary-http44:1.38.0")
+	// Redis
+	implementation ("org.springframework.boot:spring-boot-starter-data-redis")
+	// RabbitMQ
+	implementation ("org.springframework.boot:spring-boot-starter-amqp")
+	// WebSocket
+	implementation ("org.springframework.boot:spring-boot-starter-websocket")
+	// Email
+	implementation ("org.springframework.boot:spring-boot-starter-mail")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
