@@ -6,7 +6,7 @@ import java.time.Instant;
 
 @Data
 public class ResUpdateProfileUserDTO {
-    private long id;
+    private Long id;
     private String fullName;
     private String phone;
     private String bio;

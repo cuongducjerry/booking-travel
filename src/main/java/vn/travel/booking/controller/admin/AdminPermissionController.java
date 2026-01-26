@@ -47,7 +47,7 @@ public class AdminPermissionController {
     @GetMapping("/permissions/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_VIEW')")
     @ApiMessage("Fetch permission by id")
-    public ResponseEntity<ResPermissionDTO> getPermissionById(@PathVariable long id) {
+    public ResponseEntity<ResPermissionDTO> getPermissionById(@PathVariable Long id) {
         return ResponseEntity.ok(permissionService.getPermissionById(id));
     }
 

@@ -42,7 +42,7 @@ public class AdminUserController {
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasAuthority('USER_DELETE')")
     @ApiMessage("Delete a user")
-    public ResponseEntity<Void> deleteUser(@PathVariable("id") long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
         this.userService.handleDeleteUser(id);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }
@@ -72,7 +72,7 @@ public class AdminUserController {
     @ApiMessage("Assign users to roles")
     public ResponseEntity<ResAssignRoleDTO> assignRole(
             @PathVariable Long id,
-            @RequestBody ReqAssignRoleDTO roleDTO
+            @Valid @RequestBody ReqAssignRoleDTO roleDTO
     ) {
         ResAssignRoleDTO res = this.userService.handleAssignRole(id, roleDTO);
         return ResponseEntity.status(HttpStatus.OK).body(res);
@@ -83,7 +83,7 @@ public class AdminUserController {
     @PreAuthorize("hasAuthority('USER_UPDATE_STATUS')")
     @ApiMessage("Update user status)")
     public ResponseEntity<ResUpdateUserStatusDTO> updateUserStatus(
-            @PathVariable long id,
+            @PathVariable Long id,
             @Valid @RequestBody ReqUpdateUserStatusDTO req
     ) {
         ResUpdateUserStatusDTO res = this.userService.handleUpdateUserStatus(id, req.getStatus());

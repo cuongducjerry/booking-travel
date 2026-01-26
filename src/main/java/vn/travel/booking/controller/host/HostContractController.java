@@ -1,5 +1,6 @@
 package vn.travel.booking.controller.host;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,7 @@ public class HostContractController {
     @PostMapping("/request")
     @PreAuthorize("hasAuthority('CONTRACT_REQUEST')")
     @ApiMessage("Send request create a contract")
-    public ResponseEntity<ResContractDTO> requestContract(@RequestBody ReqHostContractRequestDTO req) {
+    public ResponseEntity<ResContractDTO> requestContract(@Valid @RequestBody ReqHostContractRequestDTO req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(hostContractService.hostRequestContract(req));
     }
 
@@ -48,7 +49,7 @@ public class HostContractController {
     @ApiMessage("Send request renew a contract")
     public ResponseEntity<ResContractDTO> renew(
             @PathVariable Long id,
-            @RequestBody ReqRenewContractDTO req
+            @Valid @RequestBody ReqRenewContractDTO req
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(hostContractService.renewContract(id, req));
     }

@@ -44,7 +44,7 @@ public class WishlistService {
     /* ================== PUBLIC API ================== */
 
     @Transactional
-    public void toggleWishlist(long propertyId) {
+    public void toggleWishlist(Long propertyId) {
         Long userId = SecurityUtil.getCurrentUserId();
 
         Wishlist wishlist = findWishlist(userId, propertyId);
@@ -86,7 +86,7 @@ public class WishlistService {
 
 
     @Transactional
-    public void remove(long propertyId) {
+    public void remove(Long propertyId) {
         Long userId = SecurityUtil.getCurrentUserId();
 
         Wishlist wishlist = findWishlistOrThrow(userId, propertyId);

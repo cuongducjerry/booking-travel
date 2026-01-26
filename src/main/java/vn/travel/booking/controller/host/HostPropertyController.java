@@ -1,5 +1,6 @@
 package vn.travel.booking.controller.host;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +27,7 @@ public class HostPropertyController {
     @PreAuthorize("hasAuthority('PROPERTY_CREATE')")
     @ApiMessage("Create property (text only)")
     public ResponseEntity<ResPropertyDTO> createProperty(
-            @RequestBody ReqCreatePropertyDTO req) {
+            @Valid @RequestBody ReqCreatePropertyDTO req) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(this.propertyService.handleCreateProperty(req));
@@ -37,7 +38,7 @@ public class HostPropertyController {
     @ApiMessage("Update property amenities")
     public ResponseEntity<Void> updateAmenities(
             @PathVariable Long id,
-            @RequestBody ReqPropertyAmenityDTO req) {
+            @Valid @RequestBody ReqPropertyAmenityDTO req) {
 
         this.propertyService.handleUpdateAmenities(id, req);
         return ResponseEntity.status(HttpStatus.OK).body(null);
@@ -56,7 +57,7 @@ public class HostPropertyController {
     @ApiMessage("Update property information")
     public ResponseEntity<ResPropertyDetailDTO> updateProperty(
             @PathVariable Long id,
-            @RequestBody ReqUpdatePropertyDTO req) {
+            @Valid @RequestBody ReqUpdatePropertyDTO req) {
 
         ResPropertyDetailDTO res = propertyService.updateProperty(id, req);
         return ResponseEntity.ok(res);

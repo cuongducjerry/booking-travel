@@ -34,7 +34,7 @@ public class UserController {
     @PutMapping("/users/profile")
     @PreAuthorize("hasAuthority('USER_UPDATE_PROFILE')")
     @ApiMessage("Update a profile user")
-    public ResponseEntity<ResUpdateProfileUserDTO> updateUser(@RequestBody ReqUpdateProfileUserDTO reqUser) {
+    public ResponseEntity<ResUpdateProfileUserDTO> updateUser(@Valid @RequestBody ReqUpdateProfileUserDTO reqUser) {
 
         ResUpdateProfileUserDTO resUpdateProfileUserDTO = this.userService.handleUpdateProfileUser(reqUser);
         return ResponseEntity.status(HttpStatus.OK).body(resUpdateProfileUserDTO);
@@ -63,7 +63,7 @@ public class UserController {
     @GetMapping("/users/{id}")
     @PreAuthorize("hasAuthority('USER_VIEW') and @userSecurity.canViewUser(#id)")
     @ApiMessage("Fetch user by id")
-    public ResponseEntity<ResUserDTO> getUserById(@PathVariable("id") long id) {
+    public ResponseEntity<ResUserDTO> getUserById(@PathVariable("id") Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.viewUserById(id));
     }
 

@@ -85,7 +85,7 @@ public class AmenityService {
         return this.amenityMapper.convertToResAmenityDTO(amenity);
     }
 
-    public Amenity fetchById(long id) {
+    public Amenity fetchById(Long id) {
         return this.amenityRepository.findById(id)
                 .orElseThrow(() -> new IdInvalidException("Amenity với id = " + id + " không tồn tại"));
     }

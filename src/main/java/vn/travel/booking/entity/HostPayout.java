@@ -24,7 +24,7 @@ public class HostPayout {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     private LocalDate periodFrom;
     private LocalDate periodTo;

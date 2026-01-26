@@ -1,5 +1,6 @@
 package vn.travel.booking.controller.user;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class ReviewController {
     @ApiMessage("Create a new review")
     public ResponseEntity<ResReviewDTO> create(
             @PathVariable Long propertyId,
-            @RequestBody ReqCreateReviewDTO req
+            @Valid @RequestBody ReqCreateReviewDTO req
     ) {
         ResReviewDTO dto = reviewService.create(propertyId, req);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
@@ -37,7 +38,7 @@ public class ReviewController {
     @PutMapping("/update")
     @PreAuthorize("hasAuthority('REVIEW_UPDATE')")
     @ApiMessage("Update a review by id")
-    public ResponseEntity<ResReviewDTO> update(@RequestBody ReqUpdateReviewDTO req) {
+    public ResponseEntity<ResReviewDTO> update(@Valid @RequestBody ReqUpdateReviewDTO req) {
         ResReviewDTO dto = reviewService.update(req);
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }

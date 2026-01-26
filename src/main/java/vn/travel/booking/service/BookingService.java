@@ -4,7 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.travel.booking.dto.request.booking.ResCreateBookingDTO;
+import vn.travel.booking.dto.request.booking.ReqCreateBookingDTO;
 import vn.travel.booking.dto.response.ResultPaginationDTO;
 import vn.travel.booking.dto.response.booking.ResBookingDTO;
 import vn.travel.booking.entity.Booking;
@@ -46,7 +46,7 @@ public class BookingService {
     }
 
     @Transactional
-    public ResBookingDTO createBooking(ResCreateBookingDTO req) {
+    public ResBookingDTO createBooking(ReqCreateBookingDTO req) {
 
         Long userId = SecurityUtil.getCurrentUserId();
 

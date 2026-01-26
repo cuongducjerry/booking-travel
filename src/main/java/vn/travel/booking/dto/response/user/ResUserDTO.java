@@ -7,7 +7,7 @@ import java.time.Instant;
 
 @Data
 public class ResUserDTO {
-    private long id;
+    private Long id;
     private String email;
     private String fullName;
     private String phone;

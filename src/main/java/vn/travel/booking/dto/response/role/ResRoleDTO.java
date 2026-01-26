@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 public class ResRoleDTO {
-    private long id;
+    private Long id;
     private String name;
     private String description;
     private Instant createdAt;

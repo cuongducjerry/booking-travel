@@ -2,24 +2,68 @@ package vn.travel.booking.util.error;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import vn.travel.booking.entity.RestResponse;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestControllerAdvice
 public class GlobalException {
 
-    private ResponseEntity<RestResponse<Object>> build(HttpStatus status, String message) {
+    private ResponseEntity<RestResponse<Object>> build(
+            HttpStatus status, String message, Object data
+    ) {
         RestResponse<Object> res = new RestResponse<>();
         res.setStatusCode(status.value());
         res.setError(status.getReasonPhrase());
         res.setMessage(message);
+        res.setData(data);
         return ResponseEntity.status(status).body(res);
+    }
+
+    private ResponseEntity<RestResponse<Object>> build(
+            HttpStatus status, String message
+    ) {
+        return build(status, message, null);
+    }
+
+    // HANDLE VALIDATION
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<RestResponse<Object>> handleValidation(
+            MethodArgumentNotValidException ex
+    ) {
+        Map<String, String> errors = new HashMap<>();
+
+        ex.getBindingResult().getFieldErrors()
+                .forEach(err -> errors.put(
+                        err.getField(),
+                        err.getDefaultMessage()
+                ));
+
+        return build(
+                HttpStatus.BAD_REQUEST,
+                "Dữ liệu không hợp lệ",
+                errors
+        );
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<RestResponse<Object>> handleEnumError(
+            HttpMessageNotReadableException ex
+    ) {
+        return build(
+                HttpStatus.BAD_REQUEST,
+                "Giá trị status không hợp lệ"
+        );
     }
 
     @ExceptionHandler({

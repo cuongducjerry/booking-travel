@@ -1,5 +1,6 @@
 package vn.travel.booking.controller.admin;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -32,7 +33,7 @@ public class AdminRoleController {
     @PostMapping("/roles")
     @PreAuthorize("hasAuthority('ROLE_CREATE')")
     @ApiMessage("Create a role")
-    public ResponseEntity<ResRoleDTO> createRole(@RequestBody ReqRoleDTO dto) throws NameInvalidException {
+    public ResponseEntity<ResRoleDTO> createRole(@Valid @RequestBody ReqRoleDTO dto) throws NameInvalidException {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.roleService.handleCreateRole(dto));
     }
 
@@ -55,7 +56,7 @@ public class AdminRoleController {
     @GetMapping("/roles/{id}")
     @PreAuthorize("hasAuthority('ROLE_VIEW')")
     @ApiMessage("Fetch role by id")
-    public ResponseEntity<ResRoleDTO> getRoleById(@PathVariable long id) {
+    public ResponseEntity<ResRoleDTO> getRoleById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(this.roleService.viewRoleById(id));
     }
 
@@ -63,7 +64,7 @@ public class AdminRoleController {
     @PutMapping("/roles")
     @PreAuthorize("hasAuthority('ROLE_UPDATE')")
     @ApiMessage("Update a role")
-    public ResponseEntity<ResRoleDTO> update(@RequestBody ReqRoleUpdateDTO dto) {
+    public ResponseEntity<ResRoleDTO> update(@Valid @RequestBody ReqRoleUpdateDTO dto) {
         ResRoleDTO resRoleUpdateDTO = this.roleService.handleUpdateRole(dto);
         return ResponseEntity.status(HttpStatus.OK).body(resRoleUpdateDTO);
     }
@@ -73,8 +74,8 @@ public class AdminRoleController {
     @PreAuthorize("hasAuthority('ROLE_ASSIGN_PERMISSION')")
     @ApiMessage("Assign permissions to role")
     public ResponseEntity<ResRoleDTO> assignPermissions(
-            @PathVariable long id,
-            @RequestBody ReqAssignPermissionDTO permissionIds
+            @PathVariable Long id,
+            @Valid @RequestBody ReqAssignPermissionDTO permissionIds
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(this.roleService.handleAssignPermissions(id, permissionIds));
     }
@@ -83,7 +84,7 @@ public class AdminRoleController {
     @DeleteMapping("/roles/{id}")
     @PreAuthorize("hasAuthority('ROLE_DELETE')")
     @ApiMessage("Delete a role")
-    public ResponseEntity<Void> deleteRole(@PathVariable long id) {
+    public ResponseEntity<Void> deleteRole(@PathVariable Long id) {
         this.roleService.handleDeleteRole(id);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }

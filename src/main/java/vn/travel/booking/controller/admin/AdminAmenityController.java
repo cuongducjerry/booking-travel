@@ -59,14 +59,14 @@ public class AdminAmenityController {
     @GetMapping("/amenities/{id}")
     @PreAuthorize("hasAuthority('AMENITY_VIEW')")
     @ApiMessage("Fetch amenity by id")
-    public ResponseEntity<ResAmenityDTO> getAmenityById(@PathVariable long id) {
+    public ResponseEntity<ResAmenityDTO> getAmenityById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(this.amenityService.viewAmenityById(id));
     }
 
     @DeleteMapping("/amenities/{id}")
     @PreAuthorize("hasAuthority('AMENITY_DELETE')")
     @ApiMessage("Delete a amenity")
-    public ResponseEntity<Void> deleteAmenity(@PathVariable long id) {
+    public ResponseEntity<Void> deleteAmenity(@PathVariable Long id) {
         this.amenityService.handleDeleteAmenity(id);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }

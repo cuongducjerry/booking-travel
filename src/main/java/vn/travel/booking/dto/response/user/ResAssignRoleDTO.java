@@ -6,7 +6,7 @@ import java.time.Instant;
 
 @Data
 public class ResAssignRoleDTO {
-    private long idUser;
+    private Long idUser;
     private String roleName;
     private Instant updatedAt;
 }

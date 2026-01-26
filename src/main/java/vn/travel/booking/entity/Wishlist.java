@@ -21,7 +21,7 @@ public class Wishlist {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Builder.Default
     private boolean active = true;

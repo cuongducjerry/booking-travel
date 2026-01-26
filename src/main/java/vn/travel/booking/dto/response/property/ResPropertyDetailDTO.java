@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 public class ResPropertyDetailDTO {
-    private long id;
+    private Long id;
     private String title;
     private String description;
     private String address;

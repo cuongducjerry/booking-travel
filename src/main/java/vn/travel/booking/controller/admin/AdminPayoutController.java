@@ -1,5 +1,6 @@
 package vn.travel.booking.controller.admin;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -30,7 +31,7 @@ public class AdminPayoutController {
     @PostMapping
     @PreAuthorize("hasAuthority('PAYOUT_CREATE')")
     @ApiMessage("Create host payout")
-    public ResponseEntity<ResHostPayoutDTO> create(@RequestBody ReqCreateHostPayoutDTO req) {
+    public ResponseEntity<ResHostPayoutDTO> create(@Valid @RequestBody ReqCreateHostPayoutDTO req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(payoutService.createPayout(req));
     }
 

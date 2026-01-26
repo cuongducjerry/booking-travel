@@ -49,7 +49,7 @@ public class PermissionService {
 
     }
 
-    public ResPermissionDTO getPermissionById(long id) {
+    public ResPermissionDTO getPermissionById(Long id) {
         Permission permission = permissionRepository.findById(id)
                 .orElseThrow(() ->
                         new IdInvalidException("Permission not found with id = " + id));

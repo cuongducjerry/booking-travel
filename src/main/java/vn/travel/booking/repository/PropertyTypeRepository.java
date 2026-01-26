@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface PropertyTypeRepository extends JpaRepository<PropertyType, Long>, JpaSpecificationExecutor<PropertyType> {
 
-    Optional<PropertyType> findById(long id);
+    Optional<PropertyType> findById(Long id);
 
     boolean existsByNameIgnoreCase(String name);
 

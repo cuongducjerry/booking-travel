@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 @Data
 public class ResBookingDTO {
-    private long id;
+    private Long id;
 
     private LocalDate checkIn;
     private LocalDate checkOut;

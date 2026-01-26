@@ -43,7 +43,7 @@ public class RoleService {
         this.permissionRepository = permissionRepository;
     }
 
-    public Role fetchById(long id) {
+    public Role fetchById(Long id) {
         return this.roleRepository.findById(id)
                 .orElseThrow(() ->
                         new IdInvalidException("Role với id = " + id + " không tồn tại")
@@ -78,13 +78,13 @@ public class RoleService {
     }
 
     @Transactional
-    public void handleDeleteRole(long id) {
+    public void handleDeleteRole(Long id) {
         Role role = fetchById(id);
         this.roleRepository.delete(role);
     }
 
     @Transactional
-    public ResRoleDTO handleAssignPermissions(long roleId, ReqAssignPermissionDTO requestDTO) {
+    public ResRoleDTO handleAssignPermissions(Long roleId, ReqAssignPermissionDTO requestDTO) {
         Role role = fetchById(roleId);
 
         if ("SUPER_ADMIN".equals(role.getName())) {
@@ -121,7 +121,7 @@ public class RoleService {
 
     }
 
-    public ResRoleDTO viewRoleById(long id) {
+    public ResRoleDTO viewRoleById(Long id) {
         Role role = fetchById(id);
         return this.roleMapper.convertResRoleDTO(role);
     }

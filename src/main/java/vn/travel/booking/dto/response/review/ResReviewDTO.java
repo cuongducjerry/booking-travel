@@ -6,7 +6,7 @@ import java.time.Instant;
 
 @Data
 public class ResReviewDTO {
-    private long id;
+    private Long id;
     private int rating;
     private String comment;
     private Instant createdAt;

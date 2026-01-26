@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 public class ResContractDTO {
-    private long id;
+    private Long id;
     private String contractCode;
 
     private ContractStatus status;

@@ -1,14 +1,14 @@
 package vn.travel.booking.controller.user;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import vn.travel.booking.dto.request.booking.ResCreateBookingDTO;
+import vn.travel.booking.dto.request.booking.ReqCreateBookingDTO;
 import vn.travel.booking.dto.response.ResultPaginationDTO;
 import vn.travel.booking.dto.response.booking.ResBookingDTO;
-import vn.travel.booking.entity.Booking;
 import vn.travel.booking.service.BookingService;
 import vn.travel.booking.util.annotation.ApiMessage;
 
@@ -25,7 +25,7 @@ public class BookingController {
     @PostMapping
     @PreAuthorize("hasAuthority('BOOKING_CREATE')")
     @ApiMessage("Create a new booking")
-    public ResponseEntity<ResBookingDTO> create(@RequestBody ResCreateBookingDTO req) {
+    public ResponseEntity<ResBookingDTO> create(@Valid @RequestBody ReqCreateBookingDTO req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookingService.createBooking(req));
     }
 

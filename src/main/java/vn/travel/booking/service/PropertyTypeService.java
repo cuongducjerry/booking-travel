@@ -34,7 +34,7 @@ public class PropertyTypeService {
         this.paginationMapper = paginationMapper;
     }
 
-    public PropertyType fetchById(long id) {
+    public PropertyType fetchById(Long id) {
         return this.propertyTypeRepository.findById(id).orElseThrow(() -> new IdInvalidException("Property với id = " + id + " không tồn tại"));
     }
 

@@ -150,7 +150,7 @@ public class UserService {
     }
 
     @Transactional
-    public void handleDeleteUser(long id) {
+    public void handleDeleteUser(Long id) {
         User currentUser = fetchUserById(id);
         this.userRepository.delete(currentUser);
     }
@@ -212,7 +212,7 @@ public class UserService {
     }
 
     @Transactional
-    public ResAssignRoleDTO handleAssignRole(long userId, ReqAssignRoleDTO roleDTO) {
+    public ResAssignRoleDTO handleAssignRole(Long userId, ReqAssignRoleDTO roleDTO) {
         User user = fetchUserById(userId);
 
         Role role = this.roleRepository.findById(roleDTO.getRoleId())
@@ -223,7 +223,7 @@ public class UserService {
     }
 
     @Transactional
-    public ResUpdateUserStatusDTO handleUpdateUserStatus(long userId, StatusUser reqStatusUser) {
+    public ResUpdateUserStatusDTO handleUpdateUserStatus(Long userId, StatusUser reqStatusUser) {
         User user = fetchUserById(userId);
         user.setStatus(reqStatusUser);
         return this.userMapper.convertToResUpdateUserStatusDTO(user);
@@ -261,7 +261,7 @@ public class UserService {
         return this.userRepository.findByEmail(username);
     }
 
-    public User fetchUserById(long id){
+    public User fetchUserById(Long id){
         return this.userRepository.findById(id)
                 .orElseThrow(() ->
                         new IdInvalidException("User với id = " + id + " không tồn tại"));

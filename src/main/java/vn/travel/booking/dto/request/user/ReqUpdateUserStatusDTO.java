@@ -6,6 +6,6 @@ import vn.travel.booking.util.constant.StatusUser;
 
 @Data
 public class ReqUpdateUserStatusDTO {
-    @NotNull
+    @NotNull(message = "status không được để trống")
     private StatusUser status;
 }

@@ -1,7 +1,7 @@
 package vn.travel.booking.dto.request.user;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 @Data
@@ -12,14 +12,25 @@ public class ReqCreateUserDTO {
     private String email;
 
     @NotBlank(message = "password không được để trống")
+    @Size(min = 6, message = "password phải >= 6 ký tự")
     private String password;
 
     private String fullName;
+    @Pattern(
+            regexp = "^(0|\\+84)[0-9]{9}$",
+            message = "Số điện thoại không hợp lệ"
+    )
     private String phone;
     private String address;
-    private int age;
+
+    @NotNull(message = "age không được để trống")
+    @Min(value = 0, message = "age phải >= 0")
+    private Integer age;
+
     private boolean active = true;
 
+    @Valid
+    @NotNull(message = "role không được để trống")
     private Role role;
 
     @Getter
@@ -27,6 +38,7 @@ public class ReqCreateUserDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Role {
+        @NotNull(message = "roleId không được để trống")
         private long id;
     }
 }

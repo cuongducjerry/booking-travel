@@ -7,7 +7,7 @@ import java.time.Instant;
 
 @Data
 public class ResUpdateUserStatusDTO {
-    private long userId;
+    private Long userId;
     private StatusUser status;
     private Instant updatedAt;
 }

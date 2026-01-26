@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class ResPropertyWishlistDTO {
-    private long propertyId;
+    private Long propertyId;
     private String propertyName;
     private String address;
     private String imageUrl;

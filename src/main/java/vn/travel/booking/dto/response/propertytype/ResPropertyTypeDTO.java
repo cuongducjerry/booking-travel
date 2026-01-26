@@ -6,7 +6,7 @@ import java.time.Instant;
 
 @Data
 public class ResPropertyTypeDTO {
-    private long id;
+    private Long id;
     private String name;
     private Instant createdAt;
     private Instant updatedAt;

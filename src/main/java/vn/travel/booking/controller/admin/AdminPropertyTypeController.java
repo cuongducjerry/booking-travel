@@ -1,5 +1,6 @@
 package vn.travel.booking.controller.admin;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -30,14 +31,14 @@ public class AdminPropertyTypeController {
     @PostMapping("/property-types")
     @PreAuthorize("hasAuthority('PROPERTY_TYPE_CREATE')")
     @ApiMessage("Create a property type")
-    public ResponseEntity<ResPropertyTypeDTO> createPropertyType(@RequestBody ReqCreatePropertyTypeDTO dto) throws NameInvalidException {
+    public ResponseEntity<ResPropertyTypeDTO> createPropertyType(@Valid @RequestBody ReqCreatePropertyTypeDTO dto) throws NameInvalidException {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.propertyTypeService.handleCreatePropertyType(dto));
     }
 
     @PutMapping("/property-types")
     @PreAuthorize("hasAuthority('PROPERTY_TYPE_UPDATE')")
     @ApiMessage("Update a property type")
-    public ResponseEntity<ResPropertyTypeDTO> updatePropertyType(@RequestBody ReqUpdatePropertyTypeDTO dto) {
+    public ResponseEntity<ResPropertyTypeDTO> updatePropertyType(@Valid @RequestBody ReqUpdatePropertyTypeDTO dto) {
         ResPropertyTypeDTO resPropertyTypeUpdateDTO = this.propertyTypeService.handleUpdatePropertyType(dto);
         return ResponseEntity.status(HttpStatus.OK).body(resPropertyTypeUpdateDTO);
     }
@@ -59,14 +60,14 @@ public class AdminPropertyTypeController {
     @GetMapping("/property-types/{id}")
     @PreAuthorize("hasAuthority('PROPERTY_TYPE_VIEW')")
     @ApiMessage("Fetch property type by id")
-    public ResponseEntity<ResPropertyTypeDTO> getPropertyTypeById(@PathVariable long id) {
+    public ResponseEntity<ResPropertyTypeDTO> getPropertyTypeById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(this.propertyTypeService.viewPropertyTypeById(id));
     }
 
     @DeleteMapping("/property-types/{id}")
     @PreAuthorize("hasAuthority('PROPERTY_TYPE_DELETE')")
     @ApiMessage("Delete a property type")
-    public ResponseEntity<Void> deletePropertyType(@PathVariable long id) {
+    public ResponseEntity<Void> deletePropertyType(@PathVariable Long id) {
         this.propertyTypeService.handleDeletePropertyType(id);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }

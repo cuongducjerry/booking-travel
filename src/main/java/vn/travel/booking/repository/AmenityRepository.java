@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface AmenityRepository extends JpaRepository<Amenity, Long>, JpaSpecificationExecutor<Amenity> {
 
-    Optional<Amenity> findById(long id);
+    Optional<Amenity> findById(Long id);
 
     boolean existsByNameIgnoreCase(String name);
 

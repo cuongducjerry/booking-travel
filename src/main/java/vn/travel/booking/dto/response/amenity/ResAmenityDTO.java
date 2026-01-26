@@ -6,7 +6,7 @@ import java.time.Instant;
 
 @Data
 public class ResAmenityDTO {
-    private long id;
+    private Long id;
     private String name;
     private String icon;
     private Instant createdAt;

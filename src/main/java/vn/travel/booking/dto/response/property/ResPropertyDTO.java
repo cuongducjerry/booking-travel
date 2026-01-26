@@ -7,7 +7,7 @@ import java.time.Instant;
 @Data
 public class ResPropertyDTO {
 
-    private long id;
+    private Long id;
 
     private String title;
     private String description;

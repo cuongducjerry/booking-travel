@@ -22,7 +22,7 @@ public class WishlistController {
     @PostMapping("/toggle/{propertyId}")
     @PreAuthorize("hasAuthority('WISHLIST_TOGGLE')")
     @ApiMessage("Toggle wishlist")
-    public ResponseEntity<Void> toggleWishlist(@PathVariable long propertyId) {
+    public ResponseEntity<Void> toggleWishlist(@PathVariable Long propertyId) {
         this.wishlistService.toggleWishlist(propertyId);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }
@@ -37,7 +37,7 @@ public class WishlistController {
     @DeleteMapping("/{propertyId}")
     @PreAuthorize("hasAuthority('WISHLIST_DELETE')")
     @ApiMessage("Delete a wishlist")
-    public ResponseEntity<Void> removeWishlist(@PathVariable long propertyId) {
+    public ResponseEntity<Void> removeWishlist(@PathVariable Long propertyId) {
         wishlistService.remove(propertyId);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }

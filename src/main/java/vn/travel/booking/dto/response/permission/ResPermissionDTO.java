@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class ResPermissionDTO {
-    private long id;
+    private Long id;
     private String code;
 }
