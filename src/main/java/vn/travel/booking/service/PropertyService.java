@@ -21,7 +21,9 @@ import vn.travel.booking.repository.AmenityRepository;
 import vn.travel.booking.repository.NotificationRepository;
 import vn.travel.booking.repository.PropertyRepository;
 import vn.travel.booking.repository.PropertyTypeRepository;
+import vn.travel.booking.service.notification.NotificationService;
 import vn.travel.booking.util.SecurityUtil;
+import vn.travel.booking.util.constant.NotificationType;
 import vn.travel.booking.util.constant.PropertyStatus;
 import vn.travel.booking.util.error.BusinessException;
 import vn.travel.booking.util.error.IdInvalidException;
@@ -40,6 +42,7 @@ public class PropertyService {
     private final AmenityRepository amenityRepository;
     private final PaginationMapper paginationMapper;
     private final PropertyImageService propertyImageService;
+    private final NotificationService notificationService;
 
     public PropertyService(
             PropertyRepository propertyRepository,
@@ -48,7 +51,8 @@ public class PropertyService {
             PropertyMapper propertyMapper,
             AmenityRepository amenityRepository,
             PaginationMapper paginationMapper,
-            PropertyImageService propertyImageService) {
+            PropertyImageService propertyImageService,
+            NotificationService notificationService) {
         this.propertyRepository = propertyRepository;
         this.userService = userService;
         this.propertyTypeRepository = propertyTypeRepository;
@@ -56,6 +60,7 @@ public class PropertyService {
         this.amenityRepository = amenityRepository;
         this.paginationMapper = paginationMapper;
         this.propertyImageService = propertyImageService;
+        this.notificationService = notificationService;
     }
 
     public User getCurrentUser() {
@@ -138,9 +143,15 @@ public class PropertyService {
         property.setStatus(PropertyStatus.PENDING);
 
         // notify to admin
-        String title = "Property đang chờ kiểm duyệt từ bạn";
-        String content = "Vào thư mục kiểm duyệt property để chấp nhận hoặc từ chối property: " + property.getTitle();
-
+        notificationService.notifyAdmins(
+                NotificationType.PROPERTY,
+                "Property #" + property.getId() + " đang chờ kiểm duyệt",
+                "Host " + property.getHost().getFullName()
+                        + " đã submit property:\n"
+                        + "• Tên: " + property.getTitle() + "\n"
+                        + "• Địa chỉ: " + property.getAddress(),
+                true
+        );
 
         return this.propertyMapper.convertToResPropertyDetailDTO(property);
     }
@@ -178,21 +189,31 @@ public class PropertyService {
 
         Property property = fetchPropertyById(propertyId);
 
-        // Validate the valid status
+        // Validate status
         if (property.getStatus() != PropertyStatus.PENDING &&
                 property.getStatus() != PropertyStatus.APPROVED) {
             throw new BusinessException("Property không ở trạng thái chờ quyết định");
         }
 
+        Long hostId = property.getHost().getId();
+
         switch (req.getDecision()) {
 
             case APPROVED -> {
-                // Set status
                 property.setStatus(PropertyStatus.APPROVED);
 
-                // APPLY IMAGE DRAFT (THE FINAL THING)
+                // APPLY IMAGE DRAFT
                 propertyImageService.applyDraft(propertyId);
 
+                // notify HOST
+                notificationService.notify(
+                        hostId,
+                        NotificationType.PROPERTY,
+                        "Property #" + property.getId() + " đã được duyệt",
+                        "Property \"" + property.getTitle()
+                                + "\" của bạn đã được admin phê duyệt và sẵn sàng hiển thị.",
+                        false
+                );
             }
 
             case REJECTED -> {
@@ -202,16 +223,37 @@ public class PropertyService {
 
                 property.setStatus(PropertyStatus.REJECTED);
 
+                // notify HOST (send email)
+                notificationService.notify(
+                        hostId,
+                        NotificationType.PROPERTY,
+                        "Property #" + property.getId() + " bị từ chối",
+                        "Property \"" + property.getTitle()
+                                + "\" đã bị từ chối.\n\nLý do: "
+                                + req.getReason(),
+                        true
+                );
             }
 
             case DRAFT -> { // allow revision
                 property.setStatus(PropertyStatus.DRAFT);
 
+                // notify HOST
+                notificationService.notify(
+                        hostId,
+                        NotificationType.PROPERTY,
+                        "Property #" + property.getId() + " cần chỉnh sửa",
+                        "Admin yêu cầu bạn chỉnh sửa property \""
+                                + property.getTitle()
+                                + "\" trước khi duyệt lại.",
+                        false
+                );
             }
 
             default -> throw new BusinessException("Decision không hợp lệ");
         }
     }
+
 
 
     @Transactional

@@ -106,47 +106,48 @@ public class BookingService {
 
         bookingRepository.save(booking);
 
-        // NOTIFY HOST – New booking (send via email)
-        Long hostId = property.getHost().getId();
-
-        notificationService.notify(
-                hostId,
-                NotificationType.BOOKING,
-                "Có booking mới",
-                "Khách vừa đặt phòng từ "
-                        + booking.getCheckIn() + " đến " + booking.getCheckOut(),
-                true
-        );
-
         return this.bookingMapper.convertToResBookingDTO(booking);
     }
 
     @Transactional
-    public void cancelBooking(Long bookingId) {
+    public void requestCancelBooking(Long bookingId) {
 
         Long userId = SecurityUtil.getCurrentUserId();
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
 
-        // Check that it's the right person.
-        if (booking.getUser().getId() != userId) {
-            throw new RuntimeException("Không có quyền hủy booking này");
+        // check owner
+        if (!booking.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Không có quyền");
         }
 
-        // check status
-        if (!booking.getStatus().equals(BookingStatus.NEW)
-                && !booking.getStatus().equals(BookingStatus.CONFIRMED)) {
-            throw new RuntimeException("Không thể hủy booking");
+        // chỉ cho request khi còn hiệu lực
+        if (booking.getStatus() != BookingStatus.NEW
+                && booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new RuntimeException("Không thể yêu cầu hủy");
         }
 
         // check date
         if (!LocalDate.now().isBefore(booking.getCheckIn())) {
-            throw new RuntimeException("Đã quá hạn hủy booking");
+            throw new RuntimeException("Đã quá hạn hủy");
         }
 
-        booking.setStatus(BookingStatus.CANCELLED);
-        bookingRepository.save(booking);
+        booking.setStatus(BookingStatus.CANCEL_REQUESTED);
+
+        // notify HOST
+        notificationService.notify(
+                booking.getProperty().getHost().getId(),
+                NotificationType.BOOKING,
+                "Yêu cầu hủy booking #" + booking.getId(),
+                "Khách " + booking.getUser().getFullName()
+                        + " yêu cầu hủy booking phòng "
+                        + booking.getProperty().getTitle()
+                        + " ("
+                        + booking.getCheckIn() + " → " + booking.getCheckOut()
+                        + ")",
+                true
+        );
     }
 
     @Transactional

@@ -40,7 +40,7 @@ public class BookingController {
     @PreAuthorize("hasAuthority('BOOKING_CANCEL')")
     @ApiMessage("Cancel booking")
     public ResponseEntity<Void> cancel(@PathVariable Long bookingId) {
-        bookingService.cancelBooking(bookingId);
+        bookingService.requestCancelBooking(bookingId);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 

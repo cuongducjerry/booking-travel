@@ -28,4 +28,13 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     @Query("select u.email from User u where u.id = :userId")
     String findEmailById(@Param("userId") Long userId);
 
+    @Query("""
+        select u.id
+        from User u
+        where u.role.name like 'ADMIN%'
+           or u.role.name = 'SUPER_ADMIN'
+    """)
+    List<Long> findAdminIds();
+
+
 }

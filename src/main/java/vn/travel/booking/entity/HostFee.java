@@ -1,12 +1,14 @@
 package vn.travel.booking.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import vn.travel.booking.util.constant.FeeStatus;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "host_fees")
+@Data
 public class HostFee {
 
     @Id

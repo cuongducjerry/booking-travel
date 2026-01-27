@@ -15,7 +15,9 @@ import vn.travel.booking.repository.BookingRepository;
 import vn.travel.booking.repository.HostContractRepository;
 import vn.travel.booking.repository.HostPayoutRepository;
 import vn.travel.booking.repository.UserRepository;
+import vn.travel.booking.service.notification.NotificationService;
 import vn.travel.booking.util.constant.ContractStatus;
+import vn.travel.booking.util.constant.NotificationType;
 import vn.travel.booking.util.constant.PayoutStatus;
 import vn.travel.booking.util.error.BusinessException;
 import vn.travel.booking.util.error.IdInvalidException;
@@ -33,6 +35,7 @@ public class HostPayoutService {
     private final HostContractRepository contractRepository;
     private final PayoutMapper payoutMapper;
     private final PaginationMapper paginationMapper;
+    private final NotificationService notificationService;
 
     public HostPayoutService(
             HostPayoutRepository payoutRepository,
@@ -40,7 +43,8 @@ public class HostPayoutService {
             UserRepository userRepository,
             HostContractRepository contractRepository,
             PayoutMapper payoutMapper,
-            PaginationMapper paginationMapper
+            PaginationMapper paginationMapper,
+            NotificationService notificationService
     ) {
         this.payoutRepository = payoutRepository;
         this.bookingRepository = bookingRepository;
@@ -48,6 +52,7 @@ public class HostPayoutService {
         this.contractRepository = contractRepository;
         this.payoutMapper = payoutMapper;
         this.paginationMapper = paginationMapper;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -149,6 +154,23 @@ public class HostPayoutService {
         payout.setStatus(PayoutStatus.PAID);
         payout.setPaidAt(Instant.now());
         payout.setTransactionRef(transactionRef);
+
+        // ================================
+        // NOTIFY HOST – PAYOUT SUCCESS
+        // ================================
+        notificationService.notify(
+                payout.getHost().getId(),
+                NotificationType.PAYOUT,
+                "Payout #" + payout.getId() + " đã được thanh toán",
+                "Admin đã chuyển tiền payout cho kỳ "
+                        + payout.getPeriodFrom() + " → " + payout.getPeriodTo()
+                        + ".\n"
+                        + "Số tiền nhận: " + payout.getNetAmount() + " " + payout.getCurrency()
+                        + ".\n"
+                        + "Mã giao dịch: " + transactionRef,
+                true
+        );
+
 
         return payoutMapper.convertToResHostPayoutDTO(payout);
     }

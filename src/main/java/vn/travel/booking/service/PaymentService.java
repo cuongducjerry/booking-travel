@@ -12,7 +12,9 @@ import vn.travel.booking.entity.Payment;
 import vn.travel.booking.mapper.PaymentMapper;
 import vn.travel.booking.repository.BookingRepository;
 import vn.travel.booking.repository.PaymentRepository;
+import vn.travel.booking.service.notification.NotificationService;
 import vn.travel.booking.util.constant.BookingStatus;
+import vn.travel.booking.util.constant.NotificationType;
 import vn.travel.booking.util.constant.PaymentMethod;
 import vn.travel.booking.util.constant.PaymentStatus;
 import vn.travel.booking.util.error.BusinessException;
@@ -33,17 +35,20 @@ public class PaymentService {
     private final BookingRepository bookingRepository;
 //    private final VNPayService vnPayService;
     private final PaymentMapper paymentMapper;
+    private final NotificationService notificationService;
 
     public PaymentService(
             PaymentRepository paymentRepository,
             BookingRepository bookingRepository,
 //            VNPayService vnPayService,
-            PaymentMapper paymentMapper
+            PaymentMapper paymentMapper,
+            NotificationService notificationService
     ) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
 //        this.vnPayService = vnPayService;
         this.paymentMapper = paymentMapper;
+        this.notificationService = notificationService;
     }
 
     /* ========== CREATE PAYMENT ========== */
@@ -96,8 +101,17 @@ public class PaymentService {
 
         paymentRepository.save(payment);
 
-        booking.setStatus(BookingStatus.CONFIRMED);
+        booking.setStatus(BookingStatus.NEW);
         bookingRepository.save(booking);
+
+        notificationService.notify(
+                booking.getProperty().getHost().getId(),
+                NotificationType.BOOKING,
+                "Có booking mới cần bạn kiểm duyệt",
+                "Khách thanh toán bằng tiền mặt và muốn đặt phòng từ "
+                        + booking.getCheckIn() + " đến " + booking.getCheckOut(),
+                true
+        );
 
         return paymentMapper.toResCreatePaymentDTO(
                 "Đã tạo booking - Thanh toán khi đến"
@@ -182,6 +196,18 @@ public class PaymentService {
 
             bookingRepository.save(booking);
             paymentRepository.save(payment);
+
+            // NOTIFY HOST – New booking (send via email)
+            Long hostId = payment.getBooking().getProperty().getHost().getId();
+
+            notificationService.notify(
+                    hostId,
+                    NotificationType.BOOKING,
+                    "Có booking mới",
+                    "Khách đã thanh toán qua VNPAY và đặt phòng từ "
+                            + booking.getCheckIn() + " đến " + booking.getCheckOut(),
+                    true
+            );
 
             return paymentMapper.toResCallBackPayDTO("MOCK PAYMENT SUCCESS");
         }

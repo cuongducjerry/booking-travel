@@ -14,8 +14,10 @@ import vn.travel.booking.mapper.ContractMapper;
 import vn.travel.booking.mapper.PaginationMapper;
 import vn.travel.booking.repository.HostContractRepository;
 import vn.travel.booking.repository.UserRepository;
+import vn.travel.booking.service.notification.NotificationService;
 import vn.travel.booking.util.SecurityUtil;
 import vn.travel.booking.util.constant.ContractStatus;
+import vn.travel.booking.util.constant.NotificationType;
 import vn.travel.booking.util.error.BusinessException;
 import vn.travel.booking.util.error.IdInvalidException;
 
@@ -31,16 +33,19 @@ public class HostContractService {
     private final ContractMapper contractMapper;
     private final PaginationMapper paginationMapper;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public HostContractService(
             HostContractRepository hostContractRepository,
             ContractMapper contractMapper,
             PaginationMapper paginationMapper,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            NotificationService notificationService) {
         this.hostContractRepository = hostContractRepository;
         this.contractMapper = contractMapper;
         this.paginationMapper = paginationMapper;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     // host
@@ -85,7 +90,6 @@ public class HostContractService {
                         "Host với id = " + hostId + " không tồn tại!"
                 ));
 
-        // Not allowed to exist pending / active
         boolean exists = hostContractRepository.existsByHost_IdAndStatusIn(
                 hostId,
                 List.of(ContractStatus.PENDING, ContractStatus.ACTIVE)
@@ -94,7 +98,6 @@ public class HostContractService {
             throw new BusinessException("Đã có hợp đồng đang xử lý");
         }
 
-        // Validate time
         if (req.getStartDate() == null || req.getEndDate() == null) {
             throw new BusinessException("Ngày bắt đầu và kết thúc là bắt buộc");
         }
@@ -103,21 +106,34 @@ public class HostContractService {
             throw new BusinessException("Thời gian hợp đồng không hợp lệ");
         }
 
-        // Create PENDING contract (host request)
         HostContract contract = HostContract.builder()
                 .contractCode("HC-" + System.currentTimeMillis())
                 .host(host)
                 .commissionRate(req.getExpectedCommissionRate())
                 .status(ContractStatus.PENDING)
-                .startDate(req.getStartDate()) // suggested host
+                .startDate(req.getStartDate())
                 .endDate(req.getEndDate())
                 .signedAt(null)
                 .build();
 
         hostContractRepository.save(contract);
 
+        // NOTIFY ADMIN
+        notificationService.notifyAdmins(
+                NotificationType.CONTRACT,
+                "Yêu cầu hợp đồng mới #" + contract.getContractCode(),
+                "Host " + host.getFullName()
+                        + " đã gửi yêu cầu hợp đồng.\n"
+                        + "Thời gian: "
+                        + req.getStartDate() + " → " + req.getEndDate()
+                        + "\nHoa hồng đề xuất: "
+                        + (req.getExpectedCommissionRate() * 100) + "%",
+                true
+        );
+
         return contractMapper.convertToResContractDTO(contract);
     }
+
 
 
     // admin
@@ -163,7 +179,6 @@ public class HostContractService {
 
         Long hostId = contract.getHost().getId();
 
-        // Ensure only 1 ACTIVE
         boolean exists = hostContractRepository.existsByHost_IdAndStatus(
                 hostId, ContractStatus.ACTIVE
         );
@@ -171,7 +186,6 @@ public class HostContractService {
             throw new BusinessException("Host đã có contract ACTIVE");
         }
 
-        // Re-validate time
         if (!contract.getStartDate().isBefore(contract.getEndDate())) {
             throw new BusinessException("Thời gian hợp đồng không hợp lệ");
         }
@@ -179,22 +193,32 @@ public class HostContractService {
         contract.setStatus(ContractStatus.ACTIVE);
         contract.setSignedAt(Instant.now());
 
-        // Optional: if startDate < now then set = now
         if (contract.getStartDate().isBefore(LocalDate.now())) {
             contract.setStartDate(LocalDate.now());
         }
 
         hostContractRepository.save(contract);
+
+        // notify HOST
+        notificationService.notify(
+                hostId,
+                NotificationType.CONTRACT,
+                "Hợp đồng đã được duyệt",
+                "Hợp đồng #" + contract.getContractCode()
+                        + " đã được admin duyệt và có hiệu lực từ "
+                        + contract.getStartDate(),
+                true
+        );
+
         return contractMapper.convertToResContractDTO(contract);
     }
-
 
     @Transactional
     public void rejectContract(Long contractId, String reason) {
 
         HostContract contract = hostContractRepository.findById(contractId)
                 .orElseThrow(() ->
-                        new IdInvalidException("Contract" + contractId + " không tồn tại"));
+                        new IdInvalidException("Contract " + contractId + " không tồn tại"));
 
         if (!contract.getStatus().equals(ContractStatus.PENDING)) {
             throw new BusinessException("Chỉ reject contract PENDING");
@@ -205,24 +229,32 @@ public class HostContractService {
         contract.setTerminatedAt(Instant.now());
 
         hostContractRepository.save(contract);
+
+        // notify HOST
+        notificationService.notify(
+                contract.getHost().getId(),
+                NotificationType.CONTRACT,
+                "Hợp đồng bị từ chối",
+                "Hợp đồng #" + contract.getContractCode()
+                        + " đã bị từ chối.\nLý do: " + reason,
+                true
+        );
     }
+
 
     @Transactional
     public ResContractDTO renewContract(Long oldContractId, ReqRenewContractDTO req) {
 
         Long hostId = SecurityUtil.getCurrentUserId();
-        Instant now = Instant.now();
 
         HostContract oldContract = hostContractRepository
                 .findByIdAndHost_Id(oldContractId, hostId)
                 .orElseThrow(() -> new BusinessException("Contract không tồn tại"));
 
-        // Only expired contracts
         if (oldContract.getStatus() != ContractStatus.EXPIRED) {
             throw new BusinessException("Chỉ được gia hạn hợp đồng đã hết hạn");
         }
 
-        // No active or pending contracts allowed
         boolean exists = hostContractRepository.existsByHost_IdAndStatusIn(
                 hostId,
                 List.of(ContractStatus.PENDING, ContractStatus.ACTIVE)
@@ -233,12 +265,10 @@ public class HostContractService {
 
         LocalDate today = LocalDate.now();
 
-        // START DATE
         LocalDate startDate = today.isAfter(oldContract.getEndDate())
                 ? today
                 : oldContract.getEndDate();
 
-        // END DATE validation
         if (!startDate.isBefore(req.getNewEndDate())) {
             throw new BusinessException("Ngày kết thúc hợp đồng không hợp lệ");
         }
@@ -253,6 +283,18 @@ public class HostContractService {
                 .build();
 
         hostContractRepository.save(newContract);
+
+        // notify ADMIN
+        notificationService.notifyAdmins(
+                NotificationType.CONTRACT,
+                "Yêu cầu gia hạn hợp đồng",
+                "Host " + oldContract.getHost().getFullName()
+                        + " đã gửi yêu cầu gia hạn hợp đồng.\n"
+                        + "Contract cũ: " + oldContract.getContractCode()
+                        + "\nContract mới: " + newContract.getContractCode()
+                        + "\nThời gian: " + startDate + " → " + req.getNewEndDate(),
+                true
+        );
 
         return contractMapper.convertToResContractDTO(newContract);
     }
