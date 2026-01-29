@@ -1,13 +1,21 @@
 package vn.travel.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.travel.booking.dto.response.ResultPaginationDTO;
+import vn.travel.booking.dto.response.booking.ResBookingDTO;
 import vn.travel.booking.entity.Booking;
 import vn.travel.booking.entity.HostFee;
+import vn.travel.booking.mapper.BookingMapper;
+import vn.travel.booking.mapper.PaginationMapper;
 import vn.travel.booking.repository.BookingRepository;
 import vn.travel.booking.repository.HostFeeRepository;
 import vn.travel.booking.service.notification.NotificationService;
+import vn.travel.booking.specification.BookingSpecification;
 import vn.travel.booking.util.SecurityUtil;
 import vn.travel.booking.util.constant.BookingStatus;
 import vn.travel.booking.util.constant.FeeStatus;
@@ -15,6 +23,7 @@ import vn.travel.booking.util.constant.NotificationType;
 
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +32,7 @@ public class BookingHostService {
     private final BookingRepository bookingRepository;
     private final NotificationService notificationService;
     private final HostFeeRepository hostFeeRepository;
+    private final BookingMapper bookingMapper;
 
     @Transactional
     public void confirmBooking(Long bookingId) {
@@ -182,7 +192,29 @@ public class BookingHostService {
         }
     }
 
+    public ResultPaginationDTO getHostBookings(BookingStatus status, Pageable pageable) {
 
+        Long hostId = SecurityUtil.getCurrentUserId();
+
+        Specification<Booking> spec = Specification
+                .where(BookingSpecification.belongsToHost(hostId))
+                .and(BookingSpecification.hasStatus(status));
+
+        Page<Booking> page = bookingRepository.findAll(spec, pageable);
+
+        List<ResBookingDTO> list = page.getContent()
+                .stream()
+                .map(item -> bookingMapper.convertToResBookingDTO(item))
+                .toList();
+
+        return new PaginationMapper().convertToResultPaginationDTO(
+                pageable.getPageNumber() + 1,
+                pageable.getPageSize(),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                list
+        );
+    }
 
 }
 

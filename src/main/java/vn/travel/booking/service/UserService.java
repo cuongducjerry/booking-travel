@@ -224,10 +224,33 @@ public class UserService {
 
     @Transactional
     public ResUpdateUserStatusDTO handleUpdateUserStatus(Long userId, StatusUser reqStatusUser) {
-        User user = fetchUserById(userId);
-        user.setStatus(reqStatusUser);
-        return this.userMapper.convertToResUpdateUserStatusDTO(user);
+
+        // The user is currently performing the action.
+        String currentRole = SecurityUtil.getCurrentUserRole(); // ADMIN / SUPER_ADMIN
+
+        User targetUser = fetchUserById(userId);
+        String targetRole = targetUser.getRole().getName(); // USER / HOST / ADMIN / SUPER_ADMIN
+
+        // If you are an ADMIN → you can only update USER and HOST information.
+        if (SecurityUtil.isAdmin()) {
+            if (!List.of(RoleCode.USER.toString(), RoleCode.HOST.toString())
+                    .contains(targetRole)) {
+                throw new AccessDeniedException(
+                        "ADMIN không được cập nhật trạng thái của ADMIN hoặc SUPER_ADMIN"
+                );
+            }
+        }
+
+        // SUPER_ADMIN is perfectly fine.
+        if (!SecurityUtil.isAdmin() && !SecurityUtil.isSuperAdmin()) {
+            throw new AccessDeniedException("Không có quyền cập nhật trạng thái user");
+        }
+
+        targetUser.setStatus(reqStatusUser);
+
+        return this.userMapper.convertToResUpdateUserStatusDTO(targetUser);
     }
+
 
     public User getUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
