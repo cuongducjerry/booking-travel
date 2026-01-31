@@ -17,10 +17,7 @@ import vn.travel.booking.dto.response.user.ResUserDTO;
 import vn.travel.booking.entity.*;
 import vn.travel.booking.mapper.PaginationMapper;
 import vn.travel.booking.mapper.PropertyMapper;
-import vn.travel.booking.repository.AmenityRepository;
-import vn.travel.booking.repository.NotificationRepository;
-import vn.travel.booking.repository.PropertyRepository;
-import vn.travel.booking.repository.PropertyTypeRepository;
+import vn.travel.booking.repository.*;
 import vn.travel.booking.service.notification.NotificationService;
 import vn.travel.booking.util.SecurityUtil;
 import vn.travel.booking.util.constant.NotificationType;
@@ -43,6 +40,7 @@ public class PropertyService {
     private final PaginationMapper paginationMapper;
     private final PropertyImageService propertyImageService;
     private final NotificationService notificationService;
+    private final PropertyImageDraftRepository propertyImageDraftRepository;
 
     public PropertyService(
             PropertyRepository propertyRepository,
@@ -52,7 +50,8 @@ public class PropertyService {
             AmenityRepository amenityRepository,
             PaginationMapper paginationMapper,
             PropertyImageService propertyImageService,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            PropertyImageDraftRepository propertyImageDraftRepository) {
         this.propertyRepository = propertyRepository;
         this.userService = userService;
         this.propertyTypeRepository = propertyTypeRepository;
@@ -61,6 +60,7 @@ public class PropertyService {
         this.paginationMapper = paginationMapper;
         this.propertyImageService = propertyImageService;
         this.notificationService = notificationService;
+        this.propertyImageDraftRepository = propertyImageDraftRepository;
     }
 
     public User getCurrentUser() {
@@ -137,8 +137,10 @@ public class PropertyService {
             throw new BusinessException("Property không thể submit ở trạng thái hiện tại");
         }
 
-        if (property.getImages().isEmpty()) {
-            throw new ImageException("Property phải có ít nhất 1 ảnh");
+        List<PropertyImageDraft> listImageDraft = propertyImageDraftRepository.findByProperty_Id(id);
+
+        if (listImageDraft.isEmpty()) {
+            throw new ImageException("Property phải có ít nhất 1 ảnh mẫu!");
         }
         property.setStatus(PropertyStatus.PENDING);
 

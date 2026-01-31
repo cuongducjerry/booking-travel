@@ -8,6 +8,7 @@ import vn.travel.booking.entity.Property;
 import vn.travel.booking.entity.PropertyImage;
 import vn.travel.booking.entity.User;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -29,6 +30,15 @@ public class PropertyMapper {
         dto.setStatus(property.getStatus().name());
         dto.setCurrency(property.getCurrency());
         dto.setCreatedAt(property.getCreatedAt());
+
+        List<PropertyImage> listImages = property.getImages();
+        List<String> images = new ArrayList<>();
+        for(PropertyImage image : listImages) {
+            images.add(image.getImageUrl());
+        }
+
+        dto.setImages(images);
+
         return dto;
     }
 

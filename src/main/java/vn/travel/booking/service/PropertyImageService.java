@@ -51,13 +51,13 @@ public class PropertyImageService {
 
             String url = cloudinaryService.uploadPropertyImage(file, propertyId);
 
-            if (property.getStatus() == PropertyStatus.DRAFT || property.getStatus() == PropertyStatus.REJECTED) {
-                saveRealImage(property, url);
-            } else if (property.getStatus() == PropertyStatus.APPROVED) {
-                property.setStatus(PropertyStatus.DRAFT);
+            if (property.getStatus() == PropertyStatus.DRAFT
+                    || property.getStatus() == PropertyStatus.REJECTED
+                    || property.getStatus() == PropertyStatus.APPROVED) {
                 saveDraft(property, url, DraftAction.ADD);
             }
         }
+        property.setStatus(PropertyStatus.DRAFT);
     }
 
     /* ===================== DELETE ===================== */
@@ -73,13 +73,13 @@ public class PropertyImageService {
             throw new BusinessException("Image không thuộc property");
         }
 
-        if (property.getStatus() == PropertyStatus.DRAFT || property.getStatus() == PropertyStatus.REJECTED) {
+        if (property.getStatus() == PropertyStatus.DRAFT
+                || property.getStatus() == PropertyStatus.REJECTED
+                || property.getStatus() == PropertyStatus.APPROVED) {
             cloudinaryService.delete(image.getImageUrl());
             propertyImageRepository.delete(image);
-        } else if (property.getStatus() == PropertyStatus.APPROVED) {
-            property.setStatus(PropertyStatus.DRAFT);
-            saveDraft(property, image.getImageUrl(), DraftAction.DELETE);
         }
+        property.setStatus(PropertyStatus.DRAFT);
     }
 
     /* ===================== APPLY WHEN APPROVED ===================== */
@@ -98,11 +98,6 @@ public class PropertyImageService {
                 saveRealImage(property, d.getImageUrl());
             }
 
-            if (d.getAction() == DraftAction.DELETE) {
-                cloudinaryService.delete(d.getImageUrl());
-                propertyImageRepository.deleteByImageUrlAndProperty_Id(
-                        d.getImageUrl(), propertyId);
-            }
         }
         propertyImageDraftRepository.deleteAll(drafts);
     }

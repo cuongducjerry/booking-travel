@@ -3,6 +3,7 @@ package vn.travel.booking.dto.response.property;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 public class ResPropertyDTO {
@@ -21,6 +22,7 @@ public class ResPropertyDTO {
     // property type
     private Long propertyTypeId;
     private String propertyTypeName;
+    private List<String> images;
 
     // host
     private Long hostId;
