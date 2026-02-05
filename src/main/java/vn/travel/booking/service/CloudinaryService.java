@@ -81,6 +81,17 @@ public class CloudinaryService {
         }
     }
 
+    public void deleteAvatarUser(String imageUrl) {
+
+        try {
+            String publicId = extractPublicIdAvatarUser(imageUrl);
+            cloudinary.uploader().destroy(publicId, Map.of());
+
+        } catch (Exception e) {
+            throw new BusinessException("Delete image failed");
+        }
+    }
+
     /**
      * Get public_id from Cloudinary URL
      * VD:
@@ -88,9 +99,13 @@ public class CloudinaryService {
      * -> properties/1/abc
      */
     private String extractPublicId(String imageUrl) {
-
         String noExt = imageUrl.substring(0, imageUrl.lastIndexOf("."));
         return noExt.substring(noExt.indexOf("properties"));
+    }
+
+    private String extractPublicIdAvatarUser(String imageUrl) {
+        String noExt = imageUrl.substring(0, imageUrl.lastIndexOf("."));
+        return noExt.substring(noExt.indexOf("avatars/users"));
     }
 
 }

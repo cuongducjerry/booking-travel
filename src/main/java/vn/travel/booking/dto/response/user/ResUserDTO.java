@@ -12,7 +12,9 @@ public class ResUserDTO {
     private String fullName;
     private String phone;
     private String address;
+    private String bio;
     private int age;
+    private String avatarUrl;
     private StatusUser status;
 
     private Role role;

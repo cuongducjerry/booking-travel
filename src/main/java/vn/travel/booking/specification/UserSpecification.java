@@ -1,27 +1,29 @@
 package vn.travel.booking.specification;
 
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import vn.travel.booking.entity.Booking;
 import vn.travel.booking.entity.Property;
 import vn.travel.booking.entity.Role;
 import vn.travel.booking.entity.User;
 import vn.travel.booking.util.SecurityUtil;
+import vn.travel.booking.util.constant.StatusUser;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserSpecification {
 
     public static Specification<User> visibleByCurrentUser() {
         return (root, query, cb) -> {
 
-            Long currentUserId = SecurityUtil.getCurrentUserId();
             Join<User, Role> roleJoin = root.join("role");
 
-            // SUPER_ADMIN: see all
             if (SecurityUtil.isSuperAdmin()) {
                 return cb.conjunction();
             }
 
-            // ADMIN_* (Ops / Finance): only USER + HOST
             if (SecurityUtil.isAdmin()) {
                 return roleJoin.get("name").in("USER", "HOST");
             }
@@ -30,6 +32,7 @@ public class UserSpecification {
         };
     }
 
+    /** Filter role */
     public static Specification<User> hasRole(String role) {
         return (root, query, cb) -> {
 
@@ -37,7 +40,7 @@ public class UserSpecification {
                 return cb.conjunction();
             }
 
-            // Only SUPER_ADMIN can filter ADMIN
+            // chỉ SUPER_ADMIN được filter ADMIN
             if ("ADMIN".equals(role) && !SecurityUtil.isSuperAdmin()) {
                 return cb.disjunction();
             }
@@ -46,18 +49,39 @@ public class UserSpecification {
         };
     }
 
+    /** Filter status */
+    public static Specification<User> hasStatus(StatusUser status) {
+        return (root, query, cb) -> {
+            if (status == null) {
+                return cb.conjunction();
+            }
+            return cb.equal(root.get("status"), status);
+        };
+    }
 
+    /** Search keyword: fullName + role.name */
     public static Specification<User> keyword(String keyword) {
         return (root, query, cb) -> {
-            if (keyword == null || keyword.isBlank()) return null;
+
+            if (keyword == null || keyword.isBlank()) {
+                return cb.conjunction();
+            }
 
             String pattern = "%" + keyword.toLowerCase() + "%";
 
-            return cb.or(
-                    cb.like(cb.lower(root.get("email")), pattern),
+            Join<User, Role> roleJoin = root.join("role");
+
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(
                     cb.like(cb.lower(root.get("fullName")), pattern)
             );
+
+            predicates.add(
+                    cb.like(cb.lower(roleJoin.get("name")), pattern)
+            );
+
+            return cb.or(predicates.toArray(new Predicate[0]));
         };
     }
 }
-

@@ -9,6 +9,7 @@ import vn.travel.booking.dto.response.ResultPaginationDTO;
 import vn.travel.booking.dto.response.contract.ResContractDTO;
 import vn.travel.booking.service.HostContractService;
 import vn.travel.booking.util.annotation.ApiMessage;
+import vn.travel.booking.util.constant.ContractStatus;
 
 @RestController
 @RequestMapping("/api/v1/admin/contracts")
@@ -24,8 +25,14 @@ public class AdminContractController {
     @GetMapping
     @PreAuthorize("hasAuthority('CONTRACT_LIST_ALL')")
     @ApiMessage("Admin get all contracts")
-    public ResponseEntity<ResultPaginationDTO> getAll(Pageable pageable) {
-        return ResponseEntity.status(HttpStatus.OK).body(hostContractService.getAllContracts(pageable));
+    public ResponseEntity<ResultPaginationDTO> getAll(
+            @RequestParam(required = false) String contractCode,
+            @RequestParam(required = false) ContractStatus status,
+            Pageable pageable
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                hostContractService.getAllContracts(contractCode, status, pageable)
+        );
     }
 
     /* ================= VIEW DETAIL ================= */

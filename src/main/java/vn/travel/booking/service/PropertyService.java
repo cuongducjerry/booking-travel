@@ -20,6 +20,7 @@ import vn.travel.booking.mapper.PropertyMapper;
 import vn.travel.booking.repository.*;
 import vn.travel.booking.service.notification.NotificationService;
 import vn.travel.booking.util.SecurityUtil;
+import vn.travel.booking.util.constant.ContractStatus;
 import vn.travel.booking.util.constant.NotificationType;
 import vn.travel.booking.util.constant.PropertyStatus;
 import vn.travel.booking.util.error.BusinessException;
@@ -41,6 +42,7 @@ public class PropertyService {
     private final PropertyImageService propertyImageService;
     private final NotificationService notificationService;
     private final PropertyImageDraftRepository propertyImageDraftRepository;
+    private final ContractPropertyRepository contractPropertyRepository;
 
     public PropertyService(
             PropertyRepository propertyRepository,
@@ -51,7 +53,8 @@ public class PropertyService {
             PaginationMapper paginationMapper,
             PropertyImageService propertyImageService,
             NotificationService notificationService,
-            PropertyImageDraftRepository propertyImageDraftRepository) {
+            PropertyImageDraftRepository propertyImageDraftRepository,
+            ContractPropertyRepository contractPropertyRepository) {
         this.propertyRepository = propertyRepository;
         this.userService = userService;
         this.propertyTypeRepository = propertyTypeRepository;
@@ -61,6 +64,7 @@ public class PropertyService {
         this.propertyImageService = propertyImageService;
         this.notificationService = notificationService;
         this.propertyImageDraftRepository = propertyImageDraftRepository;
+        this.contractPropertyRepository = contractPropertyRepository;
     }
 
     public User getCurrentUser() {
@@ -326,6 +330,31 @@ public class PropertyService {
         ResultPaginationDTO res = this.paginationMapper.convertToResultPaginationDTO(pageNumber, pageSize, totalPages, totalElements, listProperty);
 
         return res;
+    }
+
+    public List<ResPropertyDTO> handleListInactiveProperty() {
+
+        Long hostId = SecurityUtil.getCurrentUserId();
+
+        List<Property> properties =
+                propertyRepository.findByHost_Id(hostId);
+
+        return properties.stream()
+                .filter(property ->
+                        !contractPropertyRepository
+                                .existsByPropertyIdAndContractStatus(
+                                        property.getId(),
+                                        ContractStatus.ACTIVE
+                                )
+                )
+                .map(property -> {
+                    ResPropertyDTO dto =
+                            propertyMapper.convertToResPropertyDTO(property);
+
+                    dto.setHasActiveContract(false);
+                    return dto;
+                })
+                .toList();
     }
 
 

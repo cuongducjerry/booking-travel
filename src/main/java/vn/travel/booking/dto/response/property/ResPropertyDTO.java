@@ -1,8 +1,9 @@
 package vn.travel.booking.dto.response.property;
 
-import lombok.Data;
+import lombok.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -23,6 +24,7 @@ public class ResPropertyDTO {
     private Long propertyTypeId;
     private String propertyTypeName;
     private List<String> images;
+    private List<ResPropertyBookingDTO> bookings;
 
     // host
     private Long hostId;
@@ -31,5 +33,16 @@ public class ResPropertyDTO {
     private String status;   // DRAFT
 
     private Instant createdAt;
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ResPropertyBookingDTO {
+        private LocalDate checkIn;
+        private LocalDate checkOut;
+    }
+
+    private boolean hasActiveContract;
 
 }

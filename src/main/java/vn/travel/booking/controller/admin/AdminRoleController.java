@@ -70,15 +70,15 @@ public class AdminRoleController {
     }
 
     // Assign permissions
-    @PutMapping("/roles/{id}/permissions")
-    @PreAuthorize("hasAuthority('ROLE_ASSIGN_PERMISSION')")
-    @ApiMessage("Assign permissions to role")
-    public ResponseEntity<ResRoleDTO> assignPermissions(
-            @PathVariable Long id,
-            @Valid @RequestBody ReqAssignPermissionDTO permissionIds
-    ) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.roleService.handleAssignPermissions(id, permissionIds));
-    }
+//    @PutMapping("/roles/{id}/permissions")
+//    @PreAuthorize("hasAuthority('ROLE_ASSIGN_PERMISSION')")
+//    @ApiMessage("Assign permissions to role")
+//    public ResponseEntity<ResRoleDTO> assignPermissions(
+//            @PathVariable Long id,
+//            @Valid @RequestBody ReqAssignPermissionDTO permissionIds
+//    ) {
+//        return ResponseEntity.status(HttpStatus.OK).body(this.roleService.handleAssignPermissions(id, permissionIds));
+//    }
 
     // Delete role
     @DeleteMapping("/roles/{id}")

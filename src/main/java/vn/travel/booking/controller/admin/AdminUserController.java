@@ -18,6 +18,7 @@ import vn.travel.booking.entity.User;
 import vn.travel.booking.service.UserService;
 import vn.travel.booking.specification.UserSpecification;
 import vn.travel.booking.util.annotation.ApiMessage;
+import vn.travel.booking.util.constant.StatusUser;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -54,16 +55,19 @@ public class AdminUserController {
     public ResponseEntity<ResultPaginationDTO> getAllUser(
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) StatusUser status,
             Pageable pageable
     ) {
 
         Specification<User> spec = Specification
                 .where(UserSpecification.visibleByCurrentUser())
                 .and(UserSpecification.hasRole(role))
+                .and(UserSpecification.hasStatus(status))
                 .and(UserSpecification.keyword(keyword));
 
-        ResultPaginationDTO res = userService.handleListUser(spec, pageable);
-        return ResponseEntity.status(HttpStatus.OK).body(res);
+        return ResponseEntity.ok(
+                userService.handleListUser(spec, pageable)
+        );
     }
 
     // superadmin

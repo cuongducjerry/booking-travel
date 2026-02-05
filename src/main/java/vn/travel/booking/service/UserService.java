@@ -20,6 +20,7 @@ import vn.travel.booking.repository.UserRepository;
 import vn.travel.booking.util.SecurityUtil;
 import vn.travel.booking.util.constant.RoleCode;
 import vn.travel.booking.util.constant.StatusUser;
+import vn.travel.booking.util.error.ForbiddenException;
 import vn.travel.booking.util.error.IdInvalidException;
 import vn.travel.booking.util.error.InvalidPasswordException;
 import vn.travel.booking.util.error.UnauthenticatedException;
@@ -180,6 +181,10 @@ public class UserService {
             throw new UnauthenticatedException("User với email = " + email + " không tồn tại");
         }
 
+        if(currentUser.getAvatarUrl() != null && currentUser.getAvatarUrl().length() > 0) {
+            cloudinaryService.deleteAvatarUser(currentUser.getAvatarUrl());
+        }
+
         // Upload Cloudinary
         String avatarUrl = cloudinaryService.uploadAvatar(file);
 
@@ -213,12 +218,44 @@ public class UserService {
 
     @Transactional
     public ResAssignRoleDTO handleAssignRole(Long userId, ReqAssignRoleDTO roleDTO) {
+
         User user = fetchUserById(userId);
 
         Role role = this.roleRepository.findById(roleDTO.getRoleId())
-                .orElseThrow(() -> new IdInvalidException("Role với id = " + roleDTO.getRoleId() + " không tồn tại"));
+                .orElseThrow(() -> new IdInvalidException(
+                        "Role với id = " + roleDTO.getRoleId() + " không tồn tại"
+                ));
 
+        // =========================
+        // CHECK PERMISSIONS
+        // =========================
+        String currentRole = SecurityUtil.getCurrentUserRole();
+
+        if (currentRole == null) {
+            throw new ForbiddenException("Unauthenticated");
+        }
+
+        // The admin cannot be assigned ADMIN or SUPER_ADMIN.
+        if ("ADMIN".equals(currentRole)
+                && ("ADMIN".equals(role.getName())
+                || "SUPER_ADMIN".equals(role.getName()))) {
+            throw new ForbiddenException(
+                    "ADMIN không có quyền gán role ADMIN hoặc SUPER_ADMIN"
+            );
+        }
+
+        // HOST / USER not assigned a role
+        if ("HOST".equals(currentRole) || "USER".equals(currentRole)) {
+            throw new ForbiddenException(
+                    "Bạn không có quyền gán role"
+            );
+        }
+
+        // =========================
+        // Valid -> Assign Relay
+        // =========================
         user.setRole(role);
+
         return this.userMapper.convertToResAssignRoleDTO(user, role);
     }
 

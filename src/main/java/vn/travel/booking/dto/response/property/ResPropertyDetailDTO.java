@@ -4,6 +4,7 @@ import lombok.*;
 import vn.travel.booking.util.constant.PropertyStatus;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -22,6 +23,7 @@ public class ResPropertyDetailDTO {
 
     private List<String> images;
     private List<AmenityDTO> amenities;
+    private List<ResPropertyBookingDTO> bookings;
 
     @Getter
     @Setter
@@ -61,6 +63,15 @@ public class ResPropertyDetailDTO {
         private String avatarUrl;
         private String bio;
         private String address;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ResPropertyBookingDTO {
+        private LocalDate checkIn;
+        private LocalDate checkOut;
     }
 
 }

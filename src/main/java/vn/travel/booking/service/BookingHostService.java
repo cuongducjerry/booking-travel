@@ -47,8 +47,8 @@ public class BookingHostService {
             throw new RuntimeException("Không có quyền confirm booking này");
         }
 
-        if (booking.getStatus() != BookingStatus.NEW) {
-            throw new RuntimeException("Chỉ có thể confirm booking NEW");
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new RuntimeException("Chỉ có thể confirm booking PENDING");
         }
 
         booking.setStatus(BookingStatus.CONFIRMED);

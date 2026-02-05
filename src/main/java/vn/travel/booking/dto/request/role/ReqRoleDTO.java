@@ -1,8 +1,11 @@
 package vn.travel.booking.dto.request.role;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class ReqRoleDTO {
@@ -13,5 +16,8 @@ public class ReqRoleDTO {
 
     @Size(max = 255, message = "description tối đa 255 ký tự")
     private String description;
+
+    @NotEmpty(message = "permissionIds không được để trống")
+    private List<Long> permissionIds;
 }
 

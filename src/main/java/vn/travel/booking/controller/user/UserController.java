@@ -23,14 +23,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/users")
-    @PreAuthorize("hasAuthority('USER_CREATE')")
-    @ApiMessage("Create a new user")
-    public ResponseEntity<ResUserDTO> create(@Valid @RequestBody ReqCreateUserDTO reqUser) {
-        ResUserDTO res = this.userService.handleCreateUser(reqUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(res);
-    }
-
     @PutMapping("/users/profile")
     @PreAuthorize("hasAuthority('USER_UPDATE_PROFILE')")
     @ApiMessage("Update a profile user")

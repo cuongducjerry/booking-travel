@@ -73,7 +73,7 @@ public class PaymentService {
         paymentRepository.save(payment);
 
 //        String urlPay = vnPayService.createPaymentUrl(payment, request);
-        return paymentMapper.toResCreatePaymentDTO("Tạo payment url vnpay thành công!");
+        return paymentMapper.toResCreatePaymentDTO(payment.getId(), "Tạo payment url vnpay thành công!");
     }
 
     @Transactional
@@ -101,7 +101,7 @@ public class PaymentService {
 
         paymentRepository.save(payment);
 
-        booking.setStatus(BookingStatus.NEW);
+        booking.setStatus(BookingStatus.PENDING);
         bookingRepository.save(booking);
 
         notificationService.notify(
@@ -114,6 +114,7 @@ public class PaymentService {
         );
 
         return paymentMapper.toResCreatePaymentDTO(
+                payment.getId(),
                 "Đã tạo booking - Thanh toán khi đến"
         );
     }
@@ -185,7 +186,7 @@ public class PaymentService {
                 .orElseThrow(() -> new BusinessException("Payment not found"));
 
         if (payment.getStatus() == PaymentStatus.SUCCESS) {
-            return paymentMapper.toResCallBackPayDTO("ALREADY PROCESSED");
+            return paymentMapper.toResCallBackPayDTO(paymentId, "ALREADY PROCESSED");
         }
 
         if (success) {
@@ -209,12 +210,12 @@ public class PaymentService {
                     true
             );
 
-            return paymentMapper.toResCallBackPayDTO("MOCK PAYMENT SUCCESS");
+            return paymentMapper.toResCallBackPayDTO(paymentId,"MOCK PAYMENT SUCCESS");
         }
 
         payment.setStatus(PaymentStatus.FAILED);
         paymentRepository.save(payment);
-        return paymentMapper.toResCallBackPayDTO("MOCK PAYMENT FAILED");
+        return paymentMapper.toResCallBackPayDTO(paymentId,"MOCK PAYMENT FAILED");
     }
 
 }

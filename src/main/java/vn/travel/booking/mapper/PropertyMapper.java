@@ -7,9 +7,12 @@ import vn.travel.booking.dto.response.property.ResPropertyWishlistDTO;
 import vn.travel.booking.entity.Property;
 import vn.travel.booking.entity.PropertyImage;
 import vn.travel.booking.entity.User;
+import vn.travel.booking.util.constant.BookingStatus;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class PropertyMapper {
@@ -31,13 +34,33 @@ public class PropertyMapper {
         dto.setCurrency(property.getCurrency());
         dto.setCreatedAt(property.getCreatedAt());
 
-        List<PropertyImage> listImages = property.getImages();
         List<String> images = new ArrayList<>();
-        for(PropertyImage image : listImages) {
-            images.add(image.getImageUrl());
+
+        List<PropertyImage> listImages = property.getImages();
+        if (listImages != null) {
+            for (PropertyImage image : listImages) {
+                images.add(image.getImageUrl());
+            }
         }
 
         dto.setImages(images);
+
+        // ================== BOOKINGS ==================
+        List<ResPropertyDTO.ResPropertyBookingDTO> bookingDTOs =
+                Optional.ofNullable(property.getBookings())
+                        .orElse(Collections.emptyList())
+                        .stream()
+                        .filter(b -> b.getStatus() == BookingStatus.CONFIRMED)
+                        .map(b -> {
+                            ResPropertyDTO.ResPropertyBookingDTO bd =
+                                    new ResPropertyDTO.ResPropertyBookingDTO();
+                            bd.setCheckIn(b.getCheckIn());
+                            bd.setCheckOut(b.getCheckOut());
+                            return bd;
+                        })
+                        .toList();
+
+        dto.setBookings(bookingDTOs);
 
         return dto;
     }
@@ -57,13 +80,18 @@ public class PropertyMapper {
         dto.setCreatedAt(property.getCreatedAt());
         dto.setUpdatedAt(property.getUpdatedAt());
         dto.setPropertyType(property.getPropertyType().getName());
-//        dto.setContractId(property.getContract().getId());
+        dto.setContractId(property.getContract().getId());
 
         // Images
-        List<String> images = property.getImages()
-                .stream()
-                .map(PropertyImage::getImageUrl)
-                .toList();
+        List<String> images = new ArrayList<>();
+
+        List<PropertyImage> listImages = property.getImages();
+        if (listImages != null) {
+            for (PropertyImage image : listImages) {
+                images.add(image.getImageUrl());
+            }
+        }
+
         dto.setImages(images);
 
         // Amenities
@@ -100,6 +128,21 @@ public class PropertyMapper {
                 host.getAddress()
         );
         dto.setHost(hostDTO);
+
+        List<ResPropertyDetailDTO.ResPropertyBookingDTO> bookingDTOs =
+                Optional.ofNullable(property.getBookings())
+                        .orElse(Collections.emptyList())
+                        .stream()
+                        .filter(b -> b.getStatus() == BookingStatus.CONFIRMED)
+                        .map(b -> {
+                            ResPropertyDetailDTO.ResPropertyBookingDTO bd = new ResPropertyDetailDTO.ResPropertyBookingDTO();
+                            bd.setCheckIn(b.getCheckIn());
+                            bd.setCheckOut(b.getCheckOut());
+                            return bd;
+                        })
+                        .toList();
+
+        dto.setBookings(bookingDTOs);
 
         return dto;
     }

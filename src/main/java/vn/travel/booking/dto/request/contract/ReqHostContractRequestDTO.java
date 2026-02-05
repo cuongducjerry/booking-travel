@@ -6,6 +6,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class ReqHostContractRequestDTO {
@@ -23,5 +24,7 @@ public class ReqHostContractRequestDTO {
     @NotNull(message = "Ngày kết thúc không được để trống")
     @Future(message = "Ngày kết thúc phải là ngày trong tương lai")
     private LocalDate endDate;
+
+    private List<Long> propertyIds;
 }
 

@@ -4,5 +4,6 @@ import lombok.Data;
 
 @Data
 public class ResCallBackPayDTO {
+    private Long paymentId;
     private String message;
 }

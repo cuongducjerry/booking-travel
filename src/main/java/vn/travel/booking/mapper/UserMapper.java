@@ -21,6 +21,8 @@ public class UserMapper {
         res.setCreatedBy(user.getCreatedBy());
         res.setUpdatedBy(user.getUpdatedBy());
         res.setStatus(user.getStatus());
+        res.setBio(user.getBio());
+        res.setAvatarUrl(user.getAvatarUrl());
 
         ResUserDTO.Role role = new ResUserDTO.Role();
         role.setId(user.getRole().getId());

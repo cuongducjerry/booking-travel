@@ -49,7 +49,6 @@ public class PropertyController {
     }
 
     @GetMapping("/properties/{id}")
-    @PreAuthorize("hasAuthority('PROPERTY_VIEW')")
     @ApiMessage("Fetch property by id")
     public ResponseEntity<ResPropertyDetailDTO> getPropertyById(@PathVariable Long id) {
         ResPropertyDetailDTO res = this.propertyService.viewPropertyById(id);

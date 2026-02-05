@@ -16,10 +16,13 @@ import vn.travel.booking.mapper.PaginationMapper;
 import vn.travel.booking.mapper.RoleMapper;
 import vn.travel.booking.repository.PermissionRepository;
 import vn.travel.booking.repository.RoleRepository;
+import vn.travel.booking.util.error.BusinessException;
 import vn.travel.booking.util.error.IdInvalidException;
 import vn.travel.booking.util.error.NameInvalidException;
 import vn.travel.booking.util.error.PermissionNotFoundException;
 
+import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -52,6 +55,7 @@ public class RoleService {
 
     @Transactional
     public ResRoleDTO handleCreateRole(ReqRoleDTO reqRoleDTO) {
+
         if (this.roleRepository.existsByNameIgnoreCase(reqRoleDTO.getName())) {
             throw new NameInvalidException("Role name đã tồn tại");
         }
@@ -60,21 +64,42 @@ public class RoleService {
         role.setName(reqRoleDTO.getName());
         role.setDescription(reqRoleDTO.getDescription());
 
-        this.roleRepository.save(role);
+        // Get permissions from the database.
+        List<Permission> permissions =
+                permissionRepository.findAllById(reqRoleDTO.getPermissionIds());
 
-        return this.roleMapper.convertResRoleDTO(role);
+        if (permissions.size() != reqRoleDTO.getPermissionIds().size()) {
+            throw new BusinessException("Một hoặc nhiều permission không tồn tại");
+        }
 
+        role.setPermissions(permissions);
+
+        roleRepository.save(role);
+
+        return roleMapper.convertResRoleDTO(role);
     }
 
     @Transactional
-    public ResRoleDTO handleUpdateRole(ReqRoleUpdateDTO reqRoleUpdateDTO) {
-        Role role = fetchById(reqRoleUpdateDTO.getId());
+    public ResRoleDTO handleUpdateRole(ReqRoleUpdateDTO dto) {
 
-        role.setName(reqRoleUpdateDTO.getName());
-        role.setDescription(reqRoleUpdateDTO.getDescription());
+        Role role = fetchById(dto.getId());
+        role.setName(dto.getName());
+        role.setDescription(dto.getDescription());
 
-        return this.roleMapper.convertResRoleDTO(role);
+        // Update permissions
+        List<Permission> permissions =
+                permissionRepository.findAllById(dto.getPermissionIds());
 
+        if (permissions.size() != dto.getPermissionIds().size()) {
+            throw new BusinessException("Một hoặc nhiều permission không tồn tại");
+        }
+
+        // clear + reset (standard sync)
+        role.getPermissions().clear();
+        role.getPermissions().addAll(permissions);
+        role.setUpdatedAt(Instant.now());
+
+        return roleMapper.convertResRoleDTO(role);
     }
 
     @Transactional
@@ -83,26 +108,26 @@ public class RoleService {
         this.roleRepository.delete(role);
     }
 
-    @Transactional
-    public ResRoleDTO handleAssignPermissions(Long roleId, ReqAssignPermissionDTO requestDTO) {
-        Role role = fetchById(roleId);
-
-        if ("SUPER_ADMIN".equals(role.getName())) {
-            throw new RuntimeException("Không thể thay đổi permission của SUPER_ADMIN");
-        }
-
-        List<Permission> permissions = this.permissionRepository.findByIdIn(requestDTO.getPermissionIds());
-
-        if (permissions.size() != requestDTO.getPermissionIds().size()) {
-            throw new PermissionNotFoundException("Có permission không tồn tại");
-        }
-
-        role.getPermissions().clear();
-        role.getPermissions().addAll(permissions);
-
-        return roleMapper.convertResRoleDTO(role);
-
-    }
+//    @Transactional
+//    public ResRoleDTO handleAssignPermissions(Long roleId, ReqAssignPermissionDTO requestDTO) {
+//        Role role = fetchById(roleId);
+//
+//        if ("SUPER_ADMIN".equals(role.getName())) {
+//            throw new RuntimeException("Không thể thay đổi permission của SUPER_ADMIN");
+//        }
+//
+//        List<Permission> permissions = this.permissionRepository.findByIdIn(requestDTO.getPermissionIds());
+//
+//        if (permissions.size() != requestDTO.getPermissionIds().size()) {
+//            throw new PermissionNotFoundException("Có permission không tồn tại");
+//        }
+//
+//        role.getPermissions().clear();
+//        role.getPermissions().addAll(permissions);
+//
+//        return roleMapper.convertResRoleDTO(role);
+//
+//    }
 
     public ResultPaginationDTO handleListRole(Specification spec, Pageable pageable) {
         Page<Role> pageRole = this.roleRepository.findAll(spec, pageable);

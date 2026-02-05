@@ -1,6 +1,8 @@
 package vn.travel.booking.controller.host;
 
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -8,10 +10,15 @@ import org.springframework.web.bind.annotation.*;
 import vn.travel.booking.dto.request.property.ReqCreatePropertyDTO;
 import vn.travel.booking.dto.request.property.ReqPropertyAmenityDTO;
 import vn.travel.booking.dto.request.property.ReqUpdatePropertyDTO;
+import vn.travel.booking.dto.response.ResultPaginationDTO;
 import vn.travel.booking.dto.response.property.ResPropertyDTO;
 import vn.travel.booking.dto.response.property.ResPropertyDetailDTO;
+import vn.travel.booking.entity.Property;
 import vn.travel.booking.service.PropertyService;
+import vn.travel.booking.specification.PropertySpecification;
 import vn.travel.booking.util.annotation.ApiMessage;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/host")
@@ -69,6 +76,14 @@ public class HostPropertyController {
     public ResponseEntity<Void> deleteProperty(@PathVariable Long id) {
         this.propertyService.hostDeleteProperty(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/properties/inactive")
+    @PreAuthorize("hasAuthority('PROPERTY_LIST_OWN_INACTIVE')")
+    @ApiMessage("Fetch inactive properties (no active contract)")
+    public ResponseEntity<List<ResPropertyDTO>> getInactiveProperty() {
+        List<ResPropertyDTO> res = propertyService.handleListInactiveProperty();
+        return ResponseEntity.ok(res);
     }
 
 }

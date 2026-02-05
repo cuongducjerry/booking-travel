@@ -12,6 +12,7 @@ import vn.travel.booking.dto.response.ResultPaginationDTO;
 import vn.travel.booking.dto.response.contract.ResContractDTO;
 import vn.travel.booking.service.HostContractService;
 import vn.travel.booking.util.annotation.ApiMessage;
+import vn.travel.booking.util.constant.ContractStatus;
 
 @RestController
 @RequestMapping("/api/v1/host/contracts")
@@ -26,8 +27,14 @@ public class HostContractController {
     @GetMapping("/me")
     @PreAuthorize("hasAuthority('CONTRACT_LIST_PERSONAL')")
     @ApiMessage("Get list contract of personal")
-    public ResponseEntity<ResultPaginationDTO> myContracts(Pageable pageable) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.hostContractService.getContracts(pageable));
+    public ResponseEntity<ResultPaginationDTO> myContracts(
+            @RequestParam(required = false) String contractCode,
+            @RequestParam(required = false) ContractStatus status,
+            Pageable pageable
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                hostContractService.getContracts(contractCode, status, pageable)
+        );
     }
 
     @GetMapping("/{id}")
@@ -44,14 +51,14 @@ public class HostContractController {
         return ResponseEntity.status(HttpStatus.CREATED).body(hostContractService.hostRequestContract(req));
     }
 
-    @PostMapping("/{id}/renew")
-    @PreAuthorize("hasAuthority('CONTRACT_RENEW')")
-    @ApiMessage("Send request renew a contract")
-    public ResponseEntity<ResContractDTO> renew(
-            @PathVariable Long id,
-            @Valid @RequestBody ReqRenewContractDTO req
-    ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(hostContractService.renewContract(id, req));
-    }
+//    @PostMapping("/{id}/renew")
+//    @PreAuthorize("hasAuthority('CONTRACT_RENEW')")
+//    @ApiMessage("Send request renew a contract")
+//    public ResponseEntity<ResContractDTO> renew(
+//            @PathVariable Long id,
+//            @Valid @RequestBody ReqRenewContractDTO req
+//    ) {
+//        return ResponseEntity.status(HttpStatus.CREATED).body(hostContractService.renewContract(id, req));
+//    }
 
 }

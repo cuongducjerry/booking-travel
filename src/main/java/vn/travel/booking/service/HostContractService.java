@@ -2,19 +2,26 @@ package vn.travel.booking.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import vn.travel.booking.dto.request.contract.ReqHostContractRequestDTO;
 import vn.travel.booking.dto.request.contract.ReqRenewContractDTO;
 import vn.travel.booking.dto.response.ResultPaginationDTO;
 import vn.travel.booking.dto.response.contract.ResContractDTO;
+import vn.travel.booking.entity.ContractProperty;
 import vn.travel.booking.entity.HostContract;
+import vn.travel.booking.entity.Property;
 import vn.travel.booking.entity.User;
 import vn.travel.booking.mapper.ContractMapper;
 import vn.travel.booking.mapper.PaginationMapper;
+import vn.travel.booking.repository.ContractPropertyRepository;
 import vn.travel.booking.repository.HostContractRepository;
+import vn.travel.booking.repository.PropertyRepository;
 import vn.travel.booking.repository.UserRepository;
 import vn.travel.booking.service.notification.NotificationService;
+import vn.travel.booking.specification.HostContractSpecification;
 import vn.travel.booking.util.SecurityUtil;
 import vn.travel.booking.util.constant.ContractStatus;
 import vn.travel.booking.util.constant.NotificationType;
@@ -23,6 +30,7 @@ import vn.travel.booking.util.error.IdInvalidException;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,36 +42,56 @@ public class HostContractService {
     private final PaginationMapper paginationMapper;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final ContractPropertyRepository contractPropertyRepository;
+    private final PropertyRepository propertyRepository;
 
     public HostContractService(
             HostContractRepository hostContractRepository,
             ContractMapper contractMapper,
             PaginationMapper paginationMapper,
             UserRepository userRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            ContractPropertyRepository contractPropertyRepository,
+            PropertyRepository propertyRepository) {
         this.hostContractRepository = hostContractRepository;
         this.contractMapper = contractMapper;
         this.paginationMapper = paginationMapper;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.contractPropertyRepository = contractPropertyRepository;
+        this.propertyRepository = propertyRepository;
     }
 
     // host
-    public ResultPaginationDTO getContracts(Pageable pageable) {
+    public ResultPaginationDTO getContracts(
+            String contractCode,
+            ContractStatus status,
+            Pageable pageable
+    ) {
         Long hostId = SecurityUtil.getCurrentUserId();
 
-        Page<HostContract> pageResult = hostContractRepository.findByHost_Id(hostId, pageable);
+        Specification<HostContract> spec = Specification
+                .where(HostContractSpecification.byHost(hostId))
+                .and(HostContractSpecification.hasContractCode(contractCode))
+                .and(HostContractSpecification.hasStatus(status));
+
+        Page<HostContract> pageResult =
+                hostContractRepository.findAll(spec, pageable);
 
         int pageNumber = pageable.getPageNumber() + 1;
         int pageSize = pageable.getPageSize();
-        int totalPages = pageResult.getTotalPages();
-        long totalElements = pageResult.getTotalElements();
 
         List<ResContractDTO> listContract = pageResult.getContent().stream()
-                .map(item -> this.contractMapper.convertToResContractDTO(item))
-                .collect(Collectors.toList());
+                .map(contractMapper::convertToResContractDTO)
+                .toList();
 
-        return this.paginationMapper.convertToResultPaginationDTO(pageNumber, pageSize, totalPages, totalElements, listContract);
+        return paginationMapper.convertToResultPaginationDTO(
+                pageNumber,
+                pageSize,
+                pageResult.getTotalPages(),
+                pageResult.getTotalElements(),
+                listContract
+        );
     }
 
     // host
@@ -86,10 +114,11 @@ public class HostContractService {
         Long hostId = SecurityUtil.getCurrentUserId();
 
         User host = userRepository.findById(hostId)
-                .orElseThrow(() -> new IdInvalidException(
-                        "Host với id = " + hostId + " không tồn tại!"
-                ));
+                .orElseThrow(() ->
+                        new IdInvalidException("Host không tồn tại")
+                );
 
+        // 1. Hosts are not allowed to have two contracts running simultaneously (PENDING / ACTIVE).
         boolean exists = hostContractRepository.existsByHost_IdAndStatusIn(
                 hostId,
                 List.of(ContractStatus.PENDING, ContractStatus.ACTIVE)
@@ -98,19 +127,53 @@ public class HostContractService {
             throw new BusinessException("Đã có hợp đồng đang xử lý");
         }
 
-        if (req.getStartDate() == null || req.getEndDate() == null) {
-            throw new BusinessException("Ngày bắt đầu và kết thúc là bắt buộc");
-        }
-
+        // 2. Validate time
         if (!req.getStartDate().isBefore(req.getEndDate())) {
             throw new BusinessException("Thời gian hợp đồng không hợp lệ");
         }
+
+        // ===============================
+        // 3. Handle PROPERTY (OPTIONAL)
+        // ===============================
+        List<Property> properties = Collections.emptyList();
+
+        if (!CollectionUtils.isEmpty(req.getPropertyIds())) {
+
+            properties = propertyRepository.findAllById(req.getPropertyIds());
+
+            if (properties.size() != req.getPropertyIds().size()) {
+                throw new BusinessException("Có property không tồn tại");
+            }
+
+            // 4. Check ownership
+            boolean notOwner = properties.stream()
+                    .anyMatch(p -> !p.getHost().getId().equals(hostId));
+
+            if (notOwner) {
+                throw new BusinessException("Có property không thuộc host");
+            }
+
+            // 5. Check property đã thuộc hợp đồng khác chưa
+            boolean anyActive = contractPropertyRepository
+                    .existsActiveContractByPropertyIds(req.getPropertyIds());
+
+            if (anyActive) {
+                throw new BusinessException("Có property đã thuộc hợp đồng khác");
+            }
+        }
+
+        // ===============================
+        // 6. Create contract
+        // ===============================
+        ContractStatus status = CollectionUtils.isEmpty(req.getPropertyIds())
+                ? ContractStatus.DRAFT
+                : ContractStatus.PENDING;
 
         HostContract contract = HostContract.builder()
                 .contractCode("HC-" + System.currentTimeMillis())
                 .host(host)
                 .commissionRate(req.getExpectedCommissionRate())
-                .status(ContractStatus.PENDING)
+                .status(status)
                 .startDate(req.getStartDate())
                 .endDate(req.getEndDate())
                 .signedAt(null)
@@ -118,16 +181,29 @@ public class HostContractService {
 
         hostContractRepository.save(contract);
 
-        // NOTIFY ADMIN
+        // ===============================
+        // 7. Mapping contract-property (nếu có)
+        // ===============================
+        if (!CollectionUtils.isEmpty(properties)) {
+            for (Property p : properties) {
+                ContractProperty cp = ContractProperty.builder()
+                        .contract(contract)
+                        .property(p)
+                        .build();
+                contractPropertyRepository.save(cp);
+            }
+        }
+
+        // ===============================
+        // 8. Notify admin
+        // ===============================
         notificationService.notifyAdmins(
                 NotificationType.CONTRACT,
-                "Yêu cầu hợp đồng mới #" + contract.getContractCode(),
-                "Host " + host.getFullName()
-                        + " đã gửi yêu cầu hợp đồng.\n"
-                        + "Thời gian: "
-                        + req.getStartDate() + " → " + req.getEndDate()
-                        + "\nHoa hồng đề xuất: "
-                        + (req.getExpectedCommissionRate() * 100) + "%",
+                "Yêu cầu hợp đồng mới " + contract.getContractCode(),
+                "Host: " + host.getFullName()
+                        + "\nHoa hồng đề xuất: " + (req.getExpectedCommissionRate() * 100) + "%"
+                        + "\nThời gian: " + req.getStartDate() + " → " + req.getEndDate()
+                        + "\nTrạng thái: " + status,
                 true
         );
 
@@ -135,11 +211,19 @@ public class HostContractService {
     }
 
 
-
     // admin
-    public ResultPaginationDTO getAllContracts(Pageable pageable) {
+    public ResultPaginationDTO getAllContracts(
+            String contractCode,
+            ContractStatus status,
+            Pageable pageable
+    ) {
 
-        Page<HostContract> pageResult = hostContractRepository.findAll(pageable);
+        Specification<HostContract> spec = Specification
+                .where(HostContractSpecification.hasContractCode(contractCode))
+                .and(HostContractSpecification.hasStatus(status));
+
+        Page<HostContract> pageResult =
+                hostContractRepository.findAll(spec, pageable);
 
         List<ResContractDTO> data = pageResult.getContent()
                 .stream()
@@ -242,61 +326,61 @@ public class HostContractService {
     }
 
 
-    @Transactional
-    public ResContractDTO renewContract(Long oldContractId, ReqRenewContractDTO req) {
-
-        Long hostId = SecurityUtil.getCurrentUserId();
-
-        HostContract oldContract = hostContractRepository
-                .findByIdAndHost_Id(oldContractId, hostId)
-                .orElseThrow(() -> new BusinessException("Contract không tồn tại"));
-
-        if (oldContract.getStatus() != ContractStatus.EXPIRED) {
-            throw new BusinessException("Chỉ được gia hạn hợp đồng đã hết hạn");
-        }
-
-        boolean exists = hostContractRepository.existsByHost_IdAndStatusIn(
-                hostId,
-                List.of(ContractStatus.PENDING, ContractStatus.ACTIVE)
-        );
-        if (exists) {
-            throw new BusinessException("Đã có hợp đồng đang xử lý");
-        }
-
-        LocalDate today = LocalDate.now();
-
-        LocalDate startDate = today.isAfter(oldContract.getEndDate())
-                ? today
-                : oldContract.getEndDate();
-
-        if (!startDate.isBefore(req.getNewEndDate())) {
-            throw new BusinessException("Ngày kết thúc hợp đồng không hợp lệ");
-        }
-
-        HostContract newContract = HostContract.builder()
-                .contractCode("HC-" + System.currentTimeMillis())
-                .host(oldContract.getHost())
-                .commissionRate(req.getExpectedCommissionRate())
-                .status(ContractStatus.PENDING)
-                .startDate(startDate)
-                .endDate(req.getNewEndDate())
-                .build();
-
-        hostContractRepository.save(newContract);
-
-        // notify ADMIN
-        notificationService.notifyAdmins(
-                NotificationType.CONTRACT,
-                "Yêu cầu gia hạn hợp đồng",
-                "Host " + oldContract.getHost().getFullName()
-                        + " đã gửi yêu cầu gia hạn hợp đồng.\n"
-                        + "Contract cũ: " + oldContract.getContractCode()
-                        + "\nContract mới: " + newContract.getContractCode()
-                        + "\nThời gian: " + startDate + " → " + req.getNewEndDate(),
-                true
-        );
-
-        return contractMapper.convertToResContractDTO(newContract);
-    }
+//    @Transactional
+//    public ResContractDTO renewContract(Long oldContractId, ReqRenewContractDTO req) {
+//
+//        Long hostId = SecurityUtil.getCurrentUserId();
+//
+//        HostContract oldContract = hostContractRepository
+//                .findByIdAndHost_Id(oldContractId, hostId)
+//                .orElseThrow(() -> new BusinessException("Contract không tồn tại"));
+//
+//        if (oldContract.getStatus() != ContractStatus.EXPIRED) {
+//            throw new BusinessException("Chỉ được gia hạn hợp đồng đã hết hạn");
+//        }
+//
+//        boolean exists = hostContractRepository.existsByHost_IdAndStatusIn(
+//                hostId,
+//                List.of(ContractStatus.PENDING, ContractStatus.ACTIVE)
+//        );
+//        if (exists) {
+//            throw new BusinessException("Đã có hợp đồng đang xử lý");
+//        }
+//
+//        LocalDate today = LocalDate.now();
+//
+//        LocalDate startDate = today.isAfter(oldContract.getEndDate())
+//                ? today
+//                : oldContract.getEndDate();
+//
+//        if (!startDate.isBefore(req.getNewEndDate())) {
+//            throw new BusinessException("Ngày kết thúc hợp đồng không hợp lệ");
+//        }
+//
+//        HostContract newContract = HostContract.builder()
+//                .contractCode("HC-" + System.currentTimeMillis())
+//                .host(oldContract.getHost())
+//                .commissionRate(req.getExpectedCommissionRate())
+//                .status(ContractStatus.PENDING)
+//                .startDate(startDate)
+//                .endDate(req.getNewEndDate())
+//                .build();
+//
+//        hostContractRepository.save(newContract);
+//
+//        // notify ADMIN
+//        notificationService.notifyAdmins(
+//                NotificationType.CONTRACT,
+//                "Yêu cầu gia hạn hợp đồng",
+//                "Host " + oldContract.getHost().getFullName()
+//                        + " đã gửi yêu cầu gia hạn hợp đồng.\n"
+//                        + "Contract cũ: " + oldContract.getContractCode()
+//                        + "\nContract mới: " + newContract.getContractCode()
+//                        + "\nThời gian: " + startDate + " → " + req.getNewEndDate(),
+//                true
+//        );
+//
+//        return contractMapper.convertToResContractDTO(newContract);
+//    }
 
 }

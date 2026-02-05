@@ -3,6 +3,7 @@ package vn.travel.booking.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import vn.travel.booking.entity.HostContract;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface HostContractRepository extends JpaRepository<HostContract, Long> {
+public interface HostContractRepository extends JpaRepository<HostContract, Long>, JpaSpecificationExecutor<HostContract> {
 
     // Hosts can view their own contracts.
     Page<HostContract> findByHost_Id(Long hostId, Pageable pageable);
