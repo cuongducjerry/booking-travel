@@ -51,7 +51,7 @@ public class ResPropertyDetailDTO {
     }
 
     private HostDTO host;
-    private long contractId;
+    private Long contractId;
 
     @Getter
     @Setter

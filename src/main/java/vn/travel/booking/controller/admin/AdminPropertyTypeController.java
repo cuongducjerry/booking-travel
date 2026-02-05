@@ -43,19 +43,19 @@ public class AdminPropertyTypeController {
         return ResponseEntity.status(HttpStatus.OK).body(resPropertyTypeUpdateDTO);
     }
 
-    @GetMapping("/property-types")
-    @PreAuthorize("hasAuthority('PROPERTY_TYPE_LIST_ALL')")
-    @ApiMessage("Fetch all property type")
-    public ResponseEntity<ResultPaginationDTO> getAllPropertyType(
-            @RequestParam(required = false) String keyword,
-            Pageable pageable
-    ) {
-
-        Specification<PropertyType> spec = Specification
-                .where(PropertyTypeSpecification.keyword(keyword));
-
-        return ResponseEntity.status(HttpStatus.OK).body(this.propertyTypeService.handleListPropertyType(spec, pageable));
-    }
+//    @GetMapping("/property-types")
+//    @PreAuthorize("hasAuthority('PROPERTY_TYPE_LIST_ALL')")
+//    @ApiMessage("Fetch all property type")
+//    public ResponseEntity<ResultPaginationDTO> getAllPropertyType(
+//            @RequestParam(required = false) String keyword,
+//            Pageable pageable
+//    ) {
+//
+//        Specification<PropertyType> spec = Specification
+//                .where(PropertyTypeSpecification.keyword(keyword));
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(this.propertyTypeService.handleListPropertyType(spec, pageable));
+//    }
 
     @GetMapping("/property-types/{id}")
     @PreAuthorize("hasAuthority('PROPERTY_TYPE_VIEW')")

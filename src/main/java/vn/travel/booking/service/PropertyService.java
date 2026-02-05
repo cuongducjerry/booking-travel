@@ -43,6 +43,7 @@ public class PropertyService {
     private final NotificationService notificationService;
     private final PropertyImageDraftRepository propertyImageDraftRepository;
     private final ContractPropertyRepository contractPropertyRepository;
+    private final HostContractRepository hostContractRepository;
 
     public PropertyService(
             PropertyRepository propertyRepository,
@@ -54,7 +55,8 @@ public class PropertyService {
             PropertyImageService propertyImageService,
             NotificationService notificationService,
             PropertyImageDraftRepository propertyImageDraftRepository,
-            ContractPropertyRepository contractPropertyRepository) {
+            ContractPropertyRepository contractPropertyRepository,
+            HostContractRepository hostContractRepository) {
         this.propertyRepository = propertyRepository;
         this.userService = userService;
         this.propertyTypeRepository = propertyTypeRepository;
@@ -65,6 +67,7 @@ public class PropertyService {
         this.notificationService = notificationService;
         this.propertyImageDraftRepository = propertyImageDraftRepository;
         this.contractPropertyRepository = contractPropertyRepository;
+        this.hostContractRepository = hostContractRepository;
     }
 
     public User getCurrentUser() {
@@ -96,8 +99,16 @@ public class PropertyService {
 
         User host = getCurrentUser();
 
-        PropertyType type = this.propertyTypeRepository.findById(req.getPropertyTypeId())
+        PropertyType type = propertyTypeRepository.findById(req.getPropertyTypeId())
                 .orElseThrow(() -> new IdInvalidException("PropertyType không tồn tại"));
+
+        HostContract contract = hostContractRepository.findById(req.getContractId())
+                .orElseThrow(() -> new IdInvalidException("Contract không tồn tại"));
+
+        // (It is recommended) to check that the contract belongs to the user.
+        if (!contract.getHost().getId().equals(host.getId())) {
+            throw new AccessDeniedException("Không có quyền thêm property vào contract này");
+        }
 
         Property property = new Property();
         property.setTitle(req.getTitle());
@@ -110,12 +121,13 @@ public class PropertyService {
 
         property.setPropertyType(type);
         property.setHost(host);
+        property.setContract(contract);
 
-        property.setStatus(PropertyStatus.DRAFT); // important
+        property.setStatus(PropertyStatus.PENDING);
 
         propertyRepository.save(property);
 
-        return this.propertyMapper.convertToResPropertyDTO(property);
+        return propertyMapper.convertToResPropertyDTO(property);
     }
 
     @Transactional
@@ -196,8 +208,7 @@ public class PropertyService {
         Property property = fetchPropertyById(propertyId);
 
         // Validate status
-        if (property.getStatus() != PropertyStatus.PENDING &&
-                property.getStatus() != PropertyStatus.APPROVED) {
+        if (property.getStatus() != PropertyStatus.PENDING) {
             throw new BusinessException("Property không ở trạng thái chờ quyết định");
         }
 
@@ -208,16 +219,22 @@ public class PropertyService {
             case APPROVED -> {
                 property.setStatus(PropertyStatus.APPROVED);
 
-                // APPLY IMAGE DRAFT
+                // apply image draft
                 propertyImageService.applyDraft(propertyId);
 
-                // notify HOST
+                // === NEW: update contract status ===
+                HostContract contract = property.getContract();
+                if (contract != null && (contract.getStatus() == ContractStatus.PENDING)) {
+                    contract.setStatus(ContractStatus.ACTIVE);
+                }
+
+                // notify host
                 notificationService.notify(
                         hostId,
                         NotificationType.PROPERTY,
                         "Property #" + property.getId() + " đã được duyệt",
                         "Property \"" + property.getTitle()
-                                + "\" của bạn đã được admin phê duyệt và sẵn sàng hiển thị.",
+                                + "\" của bạn đã được admin phê duyệt.",
                         false
                 );
             }
@@ -294,10 +311,19 @@ public class PropertyService {
     public void adminApproveDelete(Long propertyId) {
 
         Property property = fetchPropertyById(propertyId);
+        Long hostId = property.getHost().getId();
 
         if (property.getStatus() != PropertyStatus.DELETE_PENDING) {
             throw new BusinessException("Property không ở trạng thái chờ xóa");
         }
+
+        notificationService.notify(
+                hostId,
+                NotificationType.PROPERTY,
+                "Property đã được admin duyệt xóa",
+                "Property " + property.getTitle() + "do bạn yêu cầu xóa đã được admin duyệt xóa!",
+                false
+        );
 
         // soft delete
         propertyRepository.delete(property);

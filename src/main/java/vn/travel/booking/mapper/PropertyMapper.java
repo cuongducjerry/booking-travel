@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 public class PropertyMapper {
@@ -33,6 +34,7 @@ public class PropertyMapper {
         dto.setStatus(property.getStatus().name());
         dto.setCurrency(property.getCurrency());
         dto.setCreatedAt(property.getCreatedAt());
+        dto.setContractId(property.getContract().getId());
 
         List<String> images = new ArrayList<>();
 
@@ -61,6 +63,19 @@ public class PropertyMapper {
                         .toList();
 
         dto.setBookings(bookingDTOs);
+
+        List<ResPropertyDetailDTO.AmenityDTO> amenities =
+                Optional.ofNullable(property.getAmenities())
+                        .orElse(Collections.emptyList())
+                        .stream()
+                        .map(a -> new ResPropertyDetailDTO.AmenityDTO(
+                                a.getId(),
+                                a.getName(),
+                                a.getIcon()
+                        ))
+                        .collect(Collectors.toList());
+
+        dto.setAmenities(amenities);
 
         return dto;
     }
@@ -95,14 +110,17 @@ public class PropertyMapper {
         dto.setImages(images);
 
         // Amenities
-        List<ResPropertyDetailDTO.AmenityDTO> amenities = property.getAmenities()
-                .stream()
-                .map(a -> new ResPropertyDetailDTO.AmenityDTO(
-                        a.getId(),
-                        a.getName(),
-                        a.getIcon()
-                ))
-                .toList();
+        List<ResPropertyDetailDTO.AmenityDTO> amenities =
+                Optional.ofNullable(property.getAmenities())
+                        .orElse(Collections.emptyList())
+                        .stream()
+                        .map(a -> new ResPropertyDetailDTO.AmenityDTO(
+                                a.getId(),
+                                a.getName(),
+                                a.getIcon()
+                        ))
+                        .collect(Collectors.toList());
+
         dto.setAmenities(amenities);
 
         // Reviews

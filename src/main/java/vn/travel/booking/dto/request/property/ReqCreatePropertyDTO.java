@@ -37,6 +37,9 @@ public class ReqCreatePropertyDTO {
 
     @NotNull(message = "propertyTypeId không được để trống")
     private Long propertyTypeId;
+
+    @NotNull(message = "contractId không được để trống")
+    private Long contractId;
 }
 
 

@@ -25,10 +25,12 @@ public class ResPropertyDTO {
     private String propertyTypeName;
     private List<String> images;
     private List<ResPropertyBookingDTO> bookings;
+    private List<ResPropertyDetailDTO.AmenityDTO> amenities;
 
     // host
     private Long hostId;
     private String hostName;
+    private Long contractId;
 
     private String status;   // DRAFT
 
