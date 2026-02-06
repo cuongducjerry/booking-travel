@@ -4,6 +4,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import vn.travel.booking.dto.response.propertyimage.ResPropertyImage;
 import vn.travel.booking.entity.Property;
 import vn.travel.booking.entity.PropertyImage;
 import vn.travel.booking.entity.PropertyImageDraft;
@@ -18,6 +19,7 @@ import vn.travel.booking.util.error.BusinessException;
 import vn.travel.booking.util.error.IdInvalidException;
 import vn.travel.booking.util.error.ImageException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -43,21 +45,33 @@ public class PropertyImageService {
     }
 
     @Transactional
-    public void uploadImages(Long propertyId, List<MultipartFile> files) {
+    public List<ResPropertyImage> uploadImages(Long propertyId, List<MultipartFile> files) {
 
         Property property = getPropertyAndCheckOwner(propertyId);
+        List<ResPropertyImage> result = new ArrayList<>();
 
         for (MultipartFile file : files) {
 
             String url = cloudinaryService.uploadPropertyImage(file, propertyId);
 
+            PropertyImageDraft draft;
+
+            // Hiện tại mọi upload đều đi qua draft
             if (property.getStatus() == PropertyStatus.DRAFT
                     || property.getStatus() == PropertyStatus.REJECTED
                     || property.getStatus() == PropertyStatus.APPROVED) {
-                saveDraft(property, url, DraftAction.ADD);
+
+                draft = saveDraft(property, url, DraftAction.ADD);
+
+            } else {
+                throw new BusinessException("Không thể upload ảnh với trạng thái hiện tại");
             }
+
+            result.add(new ResPropertyImage(draft.getId(),draft.getImageUrl()));
         }
+
         property.setStatus(PropertyStatus.DRAFT);
+        return result;
     }
 
     /* ===================== DELETE ===================== */
@@ -66,6 +80,25 @@ public class PropertyImageService {
 
         Property property = getPropertyAndCheckOwner(propertyId);
 
+        boolean isFirstDraft = propertyImageRepository.countByProperty_Id(propertyId) == 0;
+
+        // ===== CASE 1: Draft created for the first time -> delete the draft immediately =====
+        if (isFirstDraft) {
+
+            PropertyImageDraft draft = propertyImageDraftRepository.findById(imageId)
+                    .orElseThrow(() -> new IdInvalidException("Image draft không tồn tại"));
+
+            if (draft.getProperty().getId() != propertyId) {
+                throw new BusinessException("Image không thuộc property");
+            }
+
+            cloudinaryService.delete(draft.getImageUrl());
+            propertyImageDraftRepository.delete(draft);
+
+            return;
+        }
+
+        // ===== CASE 2: Update property already exists =====
         PropertyImage image = propertyImageRepository.findById(imageId)
                 .orElseThrow(() -> new IdInvalidException("Image không tồn tại"));
 
@@ -73,12 +106,12 @@ public class PropertyImageService {
             throw new BusinessException("Image không thuộc property");
         }
 
-        if (property.getStatus() == PropertyStatus.DRAFT
-                || property.getStatus() == PropertyStatus.REJECTED
-                || property.getStatus() == PropertyStatus.APPROVED) {
-            cloudinaryService.delete(image.getImageUrl());
-            propertyImageRepository.delete(image);
-        }
+        cloudinaryService.delete(image.getImageUrl());
+        propertyImageRepository.delete(image);
+
+        // If there's a related draft, delete it as well.
+        propertyImageDraftRepository.deleteByProperty_IdAndImageUrl(propertyId, image.getImageUrl());
+
         property.setStatus(PropertyStatus.DRAFT);
     }
 
@@ -128,12 +161,12 @@ public class PropertyImageService {
         propertyImageRepository.save(img);
     }
 
-    private void saveDraft(Property property, String url, DraftAction action) {
+    private PropertyImageDraft saveDraft(Property property, String url, DraftAction action) {
         PropertyImageDraft d = new PropertyImageDraft();
         d.setProperty(property);
         d.setImageUrl(url);
         d.setAction(action);
-        propertyImageDraftRepository.save(d);
+        return propertyImageDraftRepository.save(d);
     }
 
 }

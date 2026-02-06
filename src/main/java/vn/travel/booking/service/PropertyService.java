@@ -123,7 +123,7 @@ public class PropertyService {
         property.setHost(host);
         property.setContract(contract);
 
-        property.setStatus(PropertyStatus.PENDING);
+        property.setStatus(PropertyStatus.DRAFT);
 
         propertyRepository.save(property);
 
@@ -139,7 +139,7 @@ public class PropertyService {
 
         List<Amenity> amenities = this.amenityRepository.findByIdIn(req.getAmenityIds());
         property.setAmenities(amenities);
-
+        propertyRepository.save(property);
     }
 
     @Transactional
@@ -159,6 +159,7 @@ public class PropertyService {
             throw new ImageException("Property phải có ít nhất 1 ảnh mẫu!");
         }
         property.setStatus(PropertyStatus.PENDING);
+        this.propertyRepository.save(property);
 
         // notify to admin
         notificationService.notifyAdmins(

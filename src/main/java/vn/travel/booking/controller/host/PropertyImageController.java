@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import vn.travel.booking.dto.response.propertyimage.ResPropertyImage;
 import vn.travel.booking.service.PropertyImageService;
 import vn.travel.booking.util.annotation.ApiMessage;
 import vn.travel.booking.util.error.BusinessException;
@@ -21,10 +22,10 @@ public class PropertyImageController {
         this.propertyImageService = propertyImageService;
     }
 
-    @PostMapping( "/properties/{id}/images")
+    @PostMapping("/properties/{id}/images")
     @PreAuthorize("hasAuthority('PROPERTY_UPLOAD_IMAGE')")
     @ApiMessage("Upload images for property")
-    public ResponseEntity<Void> uploadImages(
+    public ResponseEntity<List<ResPropertyImage>> uploadImages(
             @PathVariable Long id,
             @RequestParam("files") List<MultipartFile> files) {
 
@@ -32,8 +33,9 @@ public class PropertyImageController {
             throw new BusinessException("Danh sách ảnh trống");
         }
 
-        this.propertyImageService.uploadImages(id, files);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(
+                propertyImageService.uploadImages(id, files)
+        );
     }
 
     /* ===========================

@@ -12,4 +12,6 @@ public interface PropertyImageDraftRepository extends JpaRepository<PropertyImag
     List<PropertyImageDraft> findByProperty_Id(Long propertyId);
 
     void deleteByProperty_Id(Long propertyId);
+
+    void deleteByProperty_IdAndImageUrl(Long propertyId, String imageUrl);
 }

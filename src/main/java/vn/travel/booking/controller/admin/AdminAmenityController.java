@@ -42,20 +42,6 @@ public class AdminAmenityController {
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
-    @GetMapping("/amenities")
-    @PreAuthorize("hasAuthority('AMENITY_LIST_ALL')")
-    @ApiMessage("Fetch all amenity")
-    public ResponseEntity<ResultPaginationDTO> getAllAmenity(
-            @RequestParam(required = false) String keyword,
-            Pageable pageable
-    ) {
-
-        Specification<Amenity> spec = Specification
-                .where(AmenitySpecification.keyword(keyword));
-
-        return ResponseEntity.status(HttpStatus.OK).body(this.amenityService.handleListAmenity(spec, pageable));
-    }
-
     @GetMapping("/amenities/{id}")
     @PreAuthorize("hasAuthority('AMENITY_VIEW')")
     @ApiMessage("Fetch amenity by id")
