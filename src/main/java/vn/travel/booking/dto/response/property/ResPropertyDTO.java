@@ -1,6 +1,7 @@
 package vn.travel.booking.dto.response.property;
 
 import lombok.*;
+import vn.travel.booking.dto.response.propertyimage.ResPropertyImage;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -23,9 +24,11 @@ public class ResPropertyDTO {
     // property type
     private Long propertyTypeId;
     private String propertyTypeName;
-    private List<String> images;
+    private List<ResPropertyImage> images;
     private List<ResPropertyBookingDTO> bookings;
     private List<ResPropertyDetailDTO.AmenityDTO> amenities;
+
+    private List<ResPropertyImage> imageDrafts;
 
     // host
     private Long hostId;

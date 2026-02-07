@@ -76,42 +76,33 @@ public class PropertyImageService {
 
     /* ===================== DELETE ===================== */
     @Transactional
-    public void markDelete(Long propertyId, Long imageId) {
+    public void deleteDraftImage(Long propertyId, Long draftId) {
 
-        Property property = getPropertyAndCheckOwner(propertyId);
+        PropertyImageDraft draft = propertyImageDraftRepository.findById(draftId)
+                .orElseThrow(() -> new IdInvalidException("Image draft không tồn tại"));
 
-        boolean isFirstDraft = propertyImageRepository.countByProperty_Id(propertyId) == 0;
-
-        // ===== CASE 1: Draft created for the first time -> delete the draft immediately =====
-        if (isFirstDraft) {
-
-            PropertyImageDraft draft = propertyImageDraftRepository.findById(imageId)
-                    .orElseThrow(() -> new IdInvalidException("Image draft không tồn tại"));
-
-            if (draft.getProperty().getId() != propertyId) {
-                throw new BusinessException("Image không thuộc property");
-            }
-
-            cloudinaryService.delete(draft.getImageUrl());
-            propertyImageDraftRepository.delete(draft);
-
-            return;
+        if (!draft.getProperty().getId().equals(propertyId)) {
+            throw new BusinessException("Image draft không thuộc property");
         }
 
-        // ===== CASE 2: Update property already exists =====
+        cloudinaryService.delete(draft.getImageUrl());
+        propertyImageDraftRepository.delete(draft);
+    }
+
+    @Transactional
+    public void deleteRealImage(Long propertyId, Long imageId) {
+
         PropertyImage image = propertyImageRepository.findById(imageId)
                 .orElseThrow(() -> new IdInvalidException("Image không tồn tại"));
 
-        if (image.getProperty().getId() != propertyId) {
+        if (!image.getProperty().getId().equals(propertyId)) {
             throw new BusinessException("Image không thuộc property");
         }
 
         cloudinaryService.delete(image.getImageUrl());
         propertyImageRepository.delete(image);
 
-        // If there's a related draft, delete it as well.
-        propertyImageDraftRepository.deleteByProperty_IdAndImageUrl(propertyId, image.getImageUrl());
-
+        Property property = image.getProperty();
         property.setStatus(PropertyStatus.DRAFT);
     }
 

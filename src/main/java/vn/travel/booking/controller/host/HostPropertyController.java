@@ -62,11 +62,11 @@ public class HostPropertyController {
     @PutMapping("/properties/{id}")
     @PreAuthorize("hasAuthority('PROPERTY_UPDATE')")
     @ApiMessage("Update property information")
-    public ResponseEntity<ResPropertyDetailDTO> updateProperty(
+    public ResponseEntity<ResPropertyDTO> updateProperty(
             @PathVariable Long id,
             @Valid @RequestBody ReqUpdatePropertyDTO req) {
 
-        ResPropertyDetailDTO res = propertyService.updateProperty(id, req);
+        ResPropertyDTO res = propertyService.updateProperty(id, req);
         return ResponseEntity.ok(res);
     }
 

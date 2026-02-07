@@ -4,8 +4,10 @@ import org.springframework.stereotype.Component;
 import vn.travel.booking.dto.response.property.ResPropertyDTO;
 import vn.travel.booking.dto.response.property.ResPropertyDetailDTO;
 import vn.travel.booking.dto.response.property.ResPropertyWishlistDTO;
+import vn.travel.booking.dto.response.propertyimage.ResPropertyImage;
 import vn.travel.booking.entity.Property;
 import vn.travel.booking.entity.PropertyImage;
+import vn.travel.booking.entity.PropertyImageDraft;
 import vn.travel.booking.entity.User;
 import vn.travel.booking.util.constant.BookingStatus;
 
@@ -36,16 +38,29 @@ public class PropertyMapper {
         dto.setCreatedAt(property.getCreatedAt());
         dto.setContractId(property.getContract().getId());
 
-        List<String> images = new ArrayList<>();
+        // ================== IMAGE ========================
+        dto.setImages(
+                Optional.ofNullable(property.getImages())
+                        .orElse(Collections.emptyList())
+                        .stream()
+                        .map(img -> new ResPropertyImage(
+                                img.getId(),
+                                img.getImageUrl()
+                        ))
+                        .toList()
+        );
 
-        List<PropertyImage> listImages = property.getImages();
-        if (listImages != null) {
-            for (PropertyImage image : listImages) {
-                images.add(image.getImageUrl());
-            }
-        }
-
-        dto.setImages(images);
+        // ================== IMAGE DRAFTS ==================
+        dto.setImageDrafts(
+                Optional.ofNullable(property.getImageDrafts())
+                        .orElse(Collections.emptyList())
+                        .stream()
+                        .map(d -> new ResPropertyImage(
+                                d.getId(),
+                                d.getImageUrl()
+                        ))
+                        .toList()
+        );
 
         // ================== BOOKINGS ==================
         List<ResPropertyDTO.ResPropertyBookingDTO> bookingDTOs =

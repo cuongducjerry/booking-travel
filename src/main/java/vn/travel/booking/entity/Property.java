@@ -73,6 +73,10 @@ public class Property {
     @JsonIgnore
     private List<PropertyImage> images;
 
+    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<PropertyImageDraft> imageDrafts;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "property_amenities",
             joinColumns = @JoinColumn(name = "property_id"),

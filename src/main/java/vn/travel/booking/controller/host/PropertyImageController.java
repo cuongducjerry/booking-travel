@@ -43,12 +43,23 @@ public class PropertyImageController {
        =========================== */
     @DeleteMapping("/properties/{propertyId}/images/{imageId}")
     @PreAuthorize("hasAuthority('PROPERTY_DELETE_IMAGE')")
-    @ApiMessage("Mark property image for delete")
+    @ApiMessage("Delete property image")
     public ResponseEntity<Void> markImageForDelete(
             @PathVariable Long propertyId,
             @PathVariable Long imageId) {
 
-        propertyImageService.markDelete(propertyId, imageId);
+        propertyImageService.deleteRealImage(propertyId, imageId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/properties/{propertyId}/image-drafts/{imageId}")
+    @PreAuthorize("hasAuthority('PROPERTY_DELETE_IMAGE')")
+    @ApiMessage("Delete property image draft ")
+    public ResponseEntity<Void> markImageDraftForDelete(
+            @PathVariable Long propertyId,
+            @PathVariable Long imageId) {
+
+        propertyImageService.deleteDraftImage(propertyId, imageId);
         return ResponseEntity.ok().build();
     }
 

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vn.travel.booking.dto.response.ResultPaginationDTO;
+import vn.travel.booking.dto.response.property.ResPropertyDTO;
 import vn.travel.booking.dto.response.property.ResPropertyDetailDTO;
 import vn.travel.booking.entity.Property;
 import vn.travel.booking.service.PropertyService;
@@ -52,6 +53,14 @@ public class PropertyController {
     @ApiMessage("Fetch property by id")
     public ResponseEntity<ResPropertyDetailDTO> getPropertyById(@PathVariable Long id) {
         ResPropertyDetailDTO res = this.propertyService.viewPropertyById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
+
+    @GetMapping("/host/view/properties/{id}")
+    @PreAuthorize("hasAnyAuthority('PROPERTY_VIEW')")
+    @ApiMessage("Fetch property by id (host)")
+    public ResponseEntity<ResPropertyDTO> getHostPropertyById(@PathVariable Long id) {
+        ResPropertyDTO res = this.propertyService.viewHostPropertyById(id);
         return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 

@@ -13,7 +13,6 @@ import vn.travel.booking.dto.request.property.ReqUpdatePropertyDTO;
 import vn.travel.booking.dto.response.ResultPaginationDTO;
 import vn.travel.booking.dto.response.property.ResPropertyDTO;
 import vn.travel.booking.dto.response.property.ResPropertyDetailDTO;
-import vn.travel.booking.dto.response.user.ResUserDTO;
 import vn.travel.booking.entity.*;
 import vn.travel.booking.mapper.PaginationMapper;
 import vn.travel.booking.mapper.PropertyMapper;
@@ -40,6 +39,7 @@ public class PropertyService {
     private final AmenityRepository amenityRepository;
     private final PaginationMapper paginationMapper;
     private final PropertyImageService propertyImageService;
+    private final PropertyImageRepository propertyImageRepository;
     private final NotificationService notificationService;
     private final PropertyImageDraftRepository propertyImageDraftRepository;
     private final ContractPropertyRepository contractPropertyRepository;
@@ -56,7 +56,8 @@ public class PropertyService {
             NotificationService notificationService,
             PropertyImageDraftRepository propertyImageDraftRepository,
             ContractPropertyRepository contractPropertyRepository,
-            HostContractRepository hostContractRepository) {
+            HostContractRepository hostContractRepository,
+            PropertyImageRepository propertyImageRepository) {
         this.propertyRepository = propertyRepository;
         this.userService = userService;
         this.propertyTypeRepository = propertyTypeRepository;
@@ -68,6 +69,7 @@ public class PropertyService {
         this.propertyImageDraftRepository = propertyImageDraftRepository;
         this.contractPropertyRepository = contractPropertyRepository;
         this.hostContractRepository = hostContractRepository;
+        this.propertyImageRepository = propertyImageRepository;
     }
 
     public User getCurrentUser() {
@@ -154,8 +156,9 @@ public class PropertyService {
         }
 
         List<PropertyImageDraft> listImageDraft = propertyImageDraftRepository.findByProperty_Id(id);
+        long countImageOld = this.propertyImageRepository.countByProperty_Id(property.getId());
 
-        if (listImageDraft.isEmpty()) {
+        if (listImageDraft.isEmpty() && countImageOld == 0) {
             throw new ImageException("Property phải có ít nhất 1 ảnh mẫu!");
         }
         property.setStatus(PropertyStatus.PENDING);
@@ -176,7 +179,7 @@ public class PropertyService {
     }
 
     @Transactional
-    public ResPropertyDetailDTO updateProperty(Long id, ReqUpdatePropertyDTO req) {
+    public ResPropertyDTO updateProperty(Long id, ReqUpdatePropertyDTO req) {
 
         Property p = fetchAndCheckOwner(id);
 
@@ -186,6 +189,8 @@ public class PropertyService {
                     throw new BusinessException("Property đang chờ duyệt, không thể sửa");
             case APPROVED ->
                     p.setStatus(PropertyStatus.DRAFT); // edit approved => draft
+            case REJECTED ->
+                    p.setStatus(PropertyStatus.DRAFT);
         }
 
         if (req.getTitle() != null) p.setTitle(req.getTitle());
@@ -200,7 +205,7 @@ public class PropertyService {
             p.setAmenities(amenityRepository.findByIdIn(req.getAmenityIds()));
         }
 
-        return propertyMapper.convertToResPropertyDetailDTO(p);
+        return propertyMapper.convertToResPropertyDTO(p);
     }
 
     @Transactional
@@ -292,14 +297,15 @@ public class PropertyService {
         }
 
         // CASE 1: DRAFT -> soft delete
-        if (property.getStatus() == PropertyStatus.DRAFT) {
-            property.setStatus(PropertyStatus.DELETED);
-            propertyRepository.delete(property);
-            return;
-        }
+//        if (property.getStatus() == PropertyStatus.DRAFT) {
+//            property.setStatus(PropertyStatus.DELETED);
+//            propertyRepository.delete(property);
+//            return;
+//        }
 
         // CASE 2: APPROVED -> send admin
-        if (property.getStatus() == PropertyStatus.APPROVED) {
+        if (property.getStatus() == PropertyStatus.REJECTED
+                || property.getStatus() == PropertyStatus.DRAFT) {
             property.setStatus(PropertyStatus.DELETE_PENDING);
             return;
         }
@@ -334,6 +340,11 @@ public class PropertyService {
     public ResPropertyDetailDTO viewPropertyById(long propertyId) {
         Property property = fetchPropertyById(propertyId);
         return this.propertyMapper.convertToResPropertyDetailDTO(property);
+    }
+
+    public ResPropertyDTO viewHostPropertyById(long propertyId) {
+        Property property = fetchPropertyById(propertyId);
+        return this.propertyMapper.convertToResPropertyDTO(property);
     }
 
     private void checkOwnership(Property property) {
