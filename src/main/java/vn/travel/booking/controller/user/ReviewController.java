@@ -54,11 +54,11 @@ public class ReviewController {
     @GetMapping("/property/{propertyId}")
     @PreAuthorize("hasAuthority('REVIEW_LIST_IN_PROPERTY')")
     @ApiMessage("List a review by property id")
-    public ResultPaginationDTO getByProperty(
+    public ResponseEntity<ResultPaginationDTO> getByProperty(
             @PathVariable Long propertyId,
             Pageable pageable
     ) {
-        return reviewService.getByProperty(propertyId, pageable);
+        return ResponseEntity.status(HttpStatus.OK).body(reviewService.getByProperty(propertyId, pageable));
     }
 
 }

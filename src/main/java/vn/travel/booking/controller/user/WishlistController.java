@@ -34,12 +34,21 @@ public class WishlistController {
         return ResponseEntity.status(HttpStatus.OK).body(this.wishlistService.getMyWishlist(page));
     }
 
-    @DeleteMapping("/{propertyId}")
-    @PreAuthorize("hasAuthority('WISHLIST_DELETE')")
-    @ApiMessage("Delete a wishlist")
-    public ResponseEntity<Void> removeWishlist(@PathVariable Long propertyId) {
-        wishlistService.remove(propertyId);
-        return ResponseEntity.status(HttpStatus.OK).body(null);
+//    @DeleteMapping("/{propertyId}")
+//    @PreAuthorize("hasAuthority('WISHLIST_DELETE')")
+//    @ApiMessage("Delete a wishlist")
+//    public ResponseEntity<Void> removeWishlist(@PathVariable Long propertyId) {
+//        wishlistService.remove(propertyId);
+//        return ResponseEntity.status(HttpStatus.OK).body(null);
+//    }
+
+    @GetMapping("/check/{propertyId}")
+    @PreAuthorize("hasAuthority('WISHLIST_CHECK')")
+    @ApiMessage("Check button heart in product card")
+    public ResponseEntity<Boolean> isWishlisted(@PathVariable Long propertyId) {
+        boolean result = wishlistService.isWishlisted(propertyId);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
+
 
 }

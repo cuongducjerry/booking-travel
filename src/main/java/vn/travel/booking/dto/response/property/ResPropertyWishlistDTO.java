@@ -8,4 +8,5 @@ public class ResPropertyWishlistDTO {
     private String propertyName;
     private String address;
     private String imageUrl;
+    private boolean isWishlisted;
 }

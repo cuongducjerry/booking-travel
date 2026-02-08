@@ -107,6 +107,15 @@ public class WishlistService {
                 .orElseThrow(() -> new RuntimeException("Wishlist không tồn tại!"));
     }
 
+    public boolean isWishlisted(Long propertyId) {
+        Long userId = SecurityUtil.getCurrentUserId();
+
+        return wishlistRepository
+                .findByUser_IdAndProperty_Id(userId, propertyId)
+                .map(Wishlist::isActive)
+                .orElse(false);
+    }
+
     private Wishlist buildWishlist(Long userId, Long propertyId) {
         User user = getUser(userId);
         Property property = getProperty(propertyId);

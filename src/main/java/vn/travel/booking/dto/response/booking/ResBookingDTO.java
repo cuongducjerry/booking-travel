@@ -1,5 +1,6 @@
 package vn.travel.booking.dto.response.booking;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import vn.travel.booking.util.constant.BookingStatus;
 
@@ -35,4 +36,15 @@ public class ResBookingDTO {
     // ---- Property info ----
     private Long propertyId;
     private String propertyName;
+
+    // ---- Review info (NEW) ----
+    private ReviewSummary review;
+
+    @Data
+    @AllArgsConstructor
+    public static class ReviewSummary {
+        private Long id;
+        private int rating;
+        private String comment;
+    }
 }
