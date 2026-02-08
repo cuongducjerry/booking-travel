@@ -10,9 +10,6 @@ import java.time.LocalDate;
 @Data
 public class ReqCreateHostPayoutDTO {
 
-    @NotNull(message = "hostId không được để trống")
-    private Long hostId;
-
     @NotNull(message = "contractId không được để trống")
     private Long contractId;
 

@@ -16,10 +16,12 @@ import vn.travel.booking.repository.HostContractRepository;
 import vn.travel.booking.repository.HostPayoutRepository;
 import vn.travel.booking.repository.UserRepository;
 import vn.travel.booking.service.notification.NotificationService;
+import vn.travel.booking.util.SecurityUtil;
 import vn.travel.booking.util.constant.ContractStatus;
 import vn.travel.booking.util.constant.NotificationType;
 import vn.travel.booking.util.constant.PayoutStatus;
 import vn.travel.booking.util.error.BusinessException;
+import vn.travel.booking.util.error.ForbiddenException;
 import vn.travel.booking.util.error.IdInvalidException;
 
 import java.time.Instant;
@@ -58,11 +60,11 @@ public class HostPayoutService {
     @Transactional
     public ResHostPayoutDTO createPayout(ReqCreateHostPayoutDTO req) {
 
-        User host = userRepository.findById(req.getHostId())
-                .orElseThrow(() -> new IdInvalidException("Host not found"));
-
         HostContract contract = contractRepository.findById(req.getContractId())
                 .orElseThrow(() -> new IdInvalidException("Contract not found"));
+
+        User host = userRepository.findById(contract.getHost().getId())
+                .orElseThrow(() -> new IdInvalidException("Host not found"));
 
         // The contract must be ACTIVE.
         if (contract.getStatus() != ContractStatus.ACTIVE) {
@@ -175,12 +177,56 @@ public class HostPayoutService {
         return payoutMapper.convertToResHostPayoutDTO(payout);
     }
 
+    @Transactional
+    public ResHostPayoutDTO markRejected(Long payoutId, String reason) {
+
+        HostPayout payout = payoutRepository.findById(payoutId)
+                .orElseThrow(() -> new IdInvalidException("Payout not found"));
+
+        // Only allow reject when PENDING
+        if (payout.getStatus() != PayoutStatus.PENDING) {
+            throw new BusinessException(
+                    "Chỉ được reject payout khi trạng thái là PENDING"
+            );
+        }
+
+        payout.setStatus(PayoutStatus.REJECTED);
+        payout.setRejectedAt(Instant.now());
+        payout.setRejectReason(reason);
+
+        // ================================
+        // NOTIFY HOST – PAYOUT REJECTED
+        // ================================
+        notificationService.notify(
+                payout.getHost().getId(),
+                NotificationType.PAYOUT,
+                "Payout #" + payout.getId() + " bị từ chối",
+                "Payout cho kỳ "
+                        + payout.getPeriodFrom() + " → " + payout.getPeriodTo()
+                        + " đã bị từ chối.\n"
+                        + "Lý do: " + reason,
+                true
+        );
+
+        return payoutMapper.convertToResHostPayoutDTO(payout);
+    }
+
     public ResHostPayoutDTO getDetail(Long payoutId) {
 
         HostPayout payout = payoutRepository.findById(payoutId)
                 .orElseThrow(() ->
                         new IdInvalidException("Payout not found"));
 
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        // If you are a HOST -> you can only view your own payout.
+        if (SecurityUtil.isHost()) {
+            if (!payout.getHost().getId().equals(currentUserId)) {
+                throw new ForbiddenException("You are not allowed to view this payout");
+            }
+        }
+
+        // Admin / Super Admin will automatically pass.
         return payoutMapper.convertToResHostPayoutDTO(payout);
     }
 

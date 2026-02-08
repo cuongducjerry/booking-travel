@@ -45,12 +45,17 @@ public class AdminPayoutController {
         return ResponseEntity.status(HttpStatus.CREATED).body(payoutService.markPaid(id, transactionRef));
     }
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('PAYOUT_VIEW_ALL')")
-    @ApiMessage("Get detail payout by id")
-    public ResponseEntity<ResHostPayoutDTO> getDetail(@PathVariable Long id) {
-        return ResponseEntity.status(HttpStatus.OK).body(payoutService.getDetail(id));
+    @PutMapping("/{id}/mark-rejected")
+    @PreAuthorize("hasAuthority('PAYOUT_MARK_REJECTED')")
+    @ApiMessage("Reject payout")
+    public ResponseEntity<ResHostPayoutDTO> markRejected(
+            @PathVariable Long id,
+            @RequestParam String reason
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(payoutService.markRejected(id, reason));
     }
+
+
 
     @GetMapping
     @PreAuthorize("hasAuthority('PAYOUT_LIST_ALL')")

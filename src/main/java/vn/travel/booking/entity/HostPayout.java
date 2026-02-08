@@ -36,7 +36,7 @@ public class HostPayout {
 
     @Enumerated(EnumType.STRING)
     private PayoutStatus status;
-    // PENDING, PAID, FAILED, HOLD
+    // PENDING, PAID, REJECTED
 
     private Instant createdAt;
     private Instant updatedAt;
@@ -58,6 +58,11 @@ public class HostPayout {
     @ManyToOne
     @JoinColumn(name = "contract_id")
     private HostContract contract;
+
+    private Instant rejectedAt;
+
+    @Column(length = 500)
+    private String rejectReason;
 
     @OneToMany(mappedBy = "payout", cascade = CascadeType.ALL)
     @Builder.Default

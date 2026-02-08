@@ -5,11 +5,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import vn.travel.booking.dto.response.ResultPaginationDTO;
+import vn.travel.booking.dto.response.payout.ResHostPayoutDTO;
 import vn.travel.booking.entity.HostPayout;
 import vn.travel.booking.service.HostPayoutService;
 import vn.travel.booking.specification.PayoutSpecification;
@@ -42,4 +40,12 @@ public class HostPayoutController {
 
         return ResponseEntity.status(HttpStatus.OK).body(hostPayoutService.getList(spec, pageable));
     }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('PAYOUT_VIEW')")
+    @ApiMessage("Get detail payout by id")
+    public ResponseEntity<ResHostPayoutDTO> getDetail(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(hostPayoutService.getDetail(id));
+    }
+
 }
