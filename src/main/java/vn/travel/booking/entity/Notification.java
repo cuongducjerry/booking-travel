@@ -7,6 +7,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import vn.travel.booking.util.constant.NotificationType;
 
 import java.time.Instant;
 
@@ -26,6 +27,9 @@ public class Notification {
 
     private String title;
     private String content;
+
+    @Enumerated(EnumType.STRING)
+    private NotificationType type;
 
     @Builder.Default
     private boolean isRead = false;

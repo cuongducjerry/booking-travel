@@ -32,6 +32,7 @@ public class NotificationConsumer {
         Notification noti = Notification.builder()
                 .title(event.getTitle())
                 .content(event.getContent())
+                .type(event.getType())
                 .user(user)
                 .isRead(false)
                 .active(true)
@@ -43,6 +44,8 @@ public class NotificationConsumer {
         cache.increaseUnread(event.getUserId(), event.getType());
 
         // 3. WebSocket push
+        System.out.println("[WS] Send noti to user: " + event.getUserId());
+
         ws.convertAndSendToUser(
                 event.getUserId().toString(),
                 "/queue/notifications",

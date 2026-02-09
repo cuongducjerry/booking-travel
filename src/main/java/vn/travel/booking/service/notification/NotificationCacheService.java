@@ -23,6 +23,20 @@ public class NotificationCacheService {
         redis.opsForValue().set(key(userId, type), 0);
     }
 
+    public void decreaseUnread(Long userId, NotificationType type) {
+        String key = key(userId, type);
+        Object val = redis.opsForValue().get(key);
+
+        long current = (val == null) ? 0L : ((Number) val).longValue();
+
+        if (current <= 0) {
+            redis.opsForValue().set(key, 0);
+        } else {
+            redis.opsForValue().set(key, current - 1);
+            // or redis.opsForValue().increment(key, -1);
+        }
+    }
+
     /* =====================
        GET UNREAD
        ===================== */
@@ -35,7 +49,9 @@ public class NotificationCacheService {
     public long getTotalUnread(Long userId) {
         return getUnread(userId, NotificationType.BOOKING)
                 + getUnread(userId, NotificationType.PAYOUT)
-                + getUnread(userId, NotificationType.SYSTEM);
+                + getUnread(userId, NotificationType.SYSTEM)
+                + getUnread(userId, NotificationType.CONTRACT)
+                + getUnread(userId, NotificationType.PROPERTY);
     }
 
     /* =====================
