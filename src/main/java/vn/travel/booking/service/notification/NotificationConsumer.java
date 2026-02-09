@@ -6,6 +6,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import vn.travel.booking.config.rabbit.RabbitMQConst;
 import vn.travel.booking.dto.NotificationEvent;
+import vn.travel.booking.dto.response.notification.ResNotiDTO;
 import vn.travel.booking.entity.Notification;
 import vn.travel.booking.entity.User;
 import vn.travel.booking.repository.NotificationRepository;
@@ -38,21 +39,31 @@ public class NotificationConsumer {
                 .active(true)
                 .build();
 
-        repo.save(noti);
+        repo.saveAndFlush(noti); //  ID + createdAt
 
         // 2. Redis unread++
         cache.increaseUnread(event.getUserId(), event.getType());
 
-        // 3. WebSocket push
-        System.out.println("[WS] Send noti to user: " + event.getUserId());
+        // 3. Map -> DTO
+        ResNotiDTO dto = ResNotiDTO.builder()
+                .id(noti.getId())
+                .title(noti.getTitle())
+                .content(noti.getContent())
+                .type(noti.getType())
+                .isRead(false)
+                .createdAt(noti.getCreatedAt())
+                .build();
+
+        // 4. WebSocket push
+        System.out.println("[WS] Send NOTI DTO to user " + event.getUserId());
 
         ws.convertAndSendToUser(
                 event.getUserId().toString(),
                 "/queue/notifications",
-                noti
+                dto
         );
 
-        // 4. Email (optional)
+        // 5. Email (optional)
         if (event.isSendEmail()) {
             String email = userRepo.findEmailById(event.getUserId());
             emailService.send(email, event.getTitle(), event.getContent());
