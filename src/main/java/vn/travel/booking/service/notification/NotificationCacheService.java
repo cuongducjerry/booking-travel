@@ -5,6 +5,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import vn.travel.booking.util.constant.NotificationType;
 
+import java.time.Duration;
+
 @Service
 @RequiredArgsConstructor
 public class NotificationCacheService {
@@ -49,7 +51,6 @@ public class NotificationCacheService {
     public long getTotalUnread(Long userId) {
         return getUnread(userId, NotificationType.BOOKING)
                 + getUnread(userId, NotificationType.PAYOUT)
-                + getUnread(userId, NotificationType.SYSTEM)
                 + getUnread(userId, NotificationType.CONTRACT)
                 + getUnread(userId, NotificationType.PROPERTY);
     }
@@ -61,5 +62,14 @@ public class NotificationCacheService {
     private String key(Long userId, NotificationType type) {
         return "noti:unread:user:" + userId + ":" + type.name();
     }
+
+    public boolean markEventProcessed(String eventId) {
+        String key = "noti:event:" + eventId;
+        Boolean ok = redis.opsForValue()
+                .setIfAbsent(key, 1, Duration.ofMinutes(10));
+        return Boolean.TRUE.equals(ok);
+    }
+
+
 }
 

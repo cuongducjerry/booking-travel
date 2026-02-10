@@ -10,6 +10,8 @@ import vn.travel.booking.util.constant.NotificationType;
 @NoArgsConstructor
 public class NotificationEvent {
 
+    private String eventId;
+
     // RECEIVER
     private Long userId;
 

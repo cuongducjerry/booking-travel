@@ -7,6 +7,7 @@ import vn.travel.booking.repository.UserRepository;
 import vn.travel.booking.util.constant.NotificationType;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class NotificationService {
             boolean sendEmail
     ) {
         producer.send(new NotificationEvent(
+                UUID.randomUUID().toString(), // eventId
                 userId,
                 type,
                 title,
@@ -31,13 +33,13 @@ public class NotificationService {
         ));
     }
 
-    public void notifyAdmins(NotificationType type,
-                             String title,
-                             String content,
-                             boolean sendEmail) {
-
+    public void notifyAdmins(
+            NotificationType type,
+            String title,
+            String content,
+            boolean sendEmail
+    ) {
         List<Long> adminIds = userRepository.findAdminIds();
-        // ADMIN + SUPER_ADMIN
 
         for (Long adminId : adminIds) {
             notify(adminId, type, title, content, sendEmail);
