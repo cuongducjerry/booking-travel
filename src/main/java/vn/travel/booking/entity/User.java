@@ -33,7 +33,7 @@ public class User {
     @NotBlank(message = "email không được để trống")
     private String email;
 
-    @NotBlank(message = "password không được để trống")
+    @Column(nullable = true)
     private String password;
 
     private String fullName;

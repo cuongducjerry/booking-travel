@@ -50,6 +50,8 @@ public class SecurityConfiguration {
                                         "/api/v1/auth/login",
                                         "/api/v1/properties/home",
                                         "/api/v1/properties/*",
+                                        "/api/v1/auth/social-login",
+                                        "/api/v1/auth/forgot-password",
                                         "/ws/**",
                                         "/ws/info/**",
                                         "/error").permitAll()

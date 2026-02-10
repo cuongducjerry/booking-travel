@@ -76,7 +76,7 @@ public class BookingHostService {
             // notify HOST about fee obligation
             notificationService.notify(
                     hostId,
-                    NotificationType.SYSTEM,
+                    NotificationType.BOOKING,
                     "Nhắc nhở thanh toán phí cho booking #" + booking.getId(),
                     "Bạn cần thanh toán phí dịch vụ cho booking phòng "
                             + booking.getProperty().getTitle()

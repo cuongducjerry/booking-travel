@@ -12,6 +12,8 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
+import vn.travel.booking.dto.request.ReqForgotPassword;
+import vn.travel.booking.dto.request.SocialLoginReq;
 import vn.travel.booking.dto.request.user.ReqCreateUserDTO;
 import vn.travel.booking.dto.request.ReqLoginDTO;
 import vn.travel.booking.dto.response.user.ResUserDTO;
@@ -130,6 +132,23 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, deleteSpringCookie.toString())
                 .body(null);
+    }
+
+    @PostMapping("/auth/social-login")
+    @ApiMessage("Login with Google")
+    public ResponseEntity<ResLoginDTO> socialLogin(
+            @RequestBody SocialLoginReq request
+    ) {
+        return ResponseEntity.ok(authService.socialLogin(request));
+    }
+
+    @PostMapping("/auth/forgot-password")
+    @ApiMessage("Forgot password")
+    public ResponseEntity<Void> forgotPassword(
+            @RequestBody ReqForgotPassword req
+    ) {
+        authService.forgotPassword(req.getEmail());
+        return ResponseEntity.ok().build();
     }
 
 }
