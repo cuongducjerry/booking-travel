@@ -120,6 +120,8 @@ public class PropertyService {
         property.setPricePerNight(req.getPricePerNight());
         property.setMaxGuests(req.getMaxGuests());
         property.setCurrency(req.getCurrency());
+        property.setLatitude(req.getLatitude());
+        property.setLongitude(req.getLongitude());
 
         property.setPropertyType(type);
         property.setHost(host);
@@ -204,6 +206,15 @@ public class PropertyService {
         if (req.getAmenityIds() != null) {
             p.setAmenities(amenityRepository.findByIdIn(req.getAmenityIds()));
         }
+
+        if (req.getLatitude() != null) {
+            p.setLatitude(req.getLatitude());
+        }
+
+        if (req.getLongitude() != null) {
+            p.setLongitude(req.getLongitude());
+        }
+
 
         return propertyMapper.convertToResPropertyDTO(p);
     }

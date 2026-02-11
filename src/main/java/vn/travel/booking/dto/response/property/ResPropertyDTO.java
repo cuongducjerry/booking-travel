@@ -48,6 +48,9 @@ public class ResPropertyDTO {
         private LocalDate checkOut;
     }
 
+    private Double latitude;
+    private Double longitude;
+
     private boolean hasActiveContract;
 
 }

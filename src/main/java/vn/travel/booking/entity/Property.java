@@ -96,6 +96,12 @@ public class Property {
     @JsonIgnore
     private List<Wishlist> wishlists;
 
+    @Column(nullable = true)
+    private Double latitude;
+
+    @Column(nullable = true)
+    private Double longitude;
+
     @PrePersist
     public void prePersist() { this.createdAt = Instant.now(); }
 

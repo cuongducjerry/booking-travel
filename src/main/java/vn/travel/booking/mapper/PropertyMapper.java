@@ -38,6 +38,14 @@ public class PropertyMapper {
         dto.setCreatedAt(property.getCreatedAt());
         dto.setContractId(property.getContract().getId());
 
+        if(property.getLatitude() != null) {
+            dto.setLatitude(property.getLatitude());
+        }
+
+        if(property.getLongitude() != null) {
+            dto.setLongitude(property.getLongitude());
+        }
+
         // ================== IMAGE ========================
         dto.setImages(
                 Optional.ofNullable(property.getImages())
@@ -111,6 +119,13 @@ public class PropertyMapper {
         dto.setUpdatedAt(property.getUpdatedAt());
         dto.setPropertyType(property.getPropertyType().getName());
         dto.setContractId(property.getContract().getId());
+
+        if(property.getLatitude() != null) {
+            dto.setLatitude(property.getLatitude());
+        }
+        if(property.getLongitude() != null) {
+            dto.setLongitude(property.getLongitude());
+        }
 
         // Images
         List<String> images = new ArrayList<>();

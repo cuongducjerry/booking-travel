@@ -38,5 +38,8 @@ public class ReqUpdatePropertyDTO {
     private Long propertyTypeId;
 
     private List<@Positive(message = "amenityId phải > 0") Long> amenityIds;
+
+    private Double latitude;
+    private Double longitude;
 }
 

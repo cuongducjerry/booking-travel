@@ -40,6 +40,13 @@ public class ReqCreatePropertyDTO {
 
     @NotNull(message = "contractId không được để trống")
     private Long contractId;
+
+    @NotNull(message = "latitude không được để trống")
+    private Double latitude;
+
+    @NotNull(message = "longitude không được để trống")
+    private Double longitude;
+
 }
 
 

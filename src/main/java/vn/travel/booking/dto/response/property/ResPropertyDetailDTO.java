@@ -74,4 +74,7 @@ public class ResPropertyDetailDTO {
         private LocalDate checkOut;
     }
 
+    private Double latitude;
+    private Double longitude;
+
 }
