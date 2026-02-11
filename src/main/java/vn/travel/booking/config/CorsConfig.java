@@ -16,7 +16,11 @@ public class CorsConfig {
 
         // allow which URLs can connect to the backend
         configuration.setAllowedOrigins(
-                Arrays.asList("http://localhost:3000", "http://localhost:4173", "http://localhost:5173"));
+                Arrays.asList("http://localhost:3000",
+                        "http://localhost:4173",
+                        "http://localhost:5173",
+                        "http://localhost"
+                ));
 
         // which methods are connected
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
