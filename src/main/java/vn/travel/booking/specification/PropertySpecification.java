@@ -64,7 +64,7 @@ public class PropertySpecification {
                 return cb.conjunction();
             }
 
-            // HOST → only view your own property
+            // HOST -> only view your own property
             if (SecurityUtil.isHost()) {
                 Long userId = SecurityUtil.getCurrentUserId();
                 if (userId == null) {

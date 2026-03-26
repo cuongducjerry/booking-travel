@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import vn.travel.booking.entity.User;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
@@ -35,5 +36,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     """)
     List<Long> findAdminIds();
 
+    @Query("SELECT u FROM User u WHERE u.email = :email")
+    Optional<User> findByEmailIncludeInactive(@Param("email") String email);
 
 }

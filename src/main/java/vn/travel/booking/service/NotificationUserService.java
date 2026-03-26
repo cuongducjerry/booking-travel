@@ -33,7 +33,14 @@ public class NotificationUserService {
     }
 
     public long getTotalUnread() {
-        return cache.getTotalUnread(SecurityUtil.getCurrentUserId());
+
+        Long userId = SecurityUtil.getCurrentUserId();
+
+        if (userId == null) return 0;
+
+        Long total = cache.getTotalUnread(userId);
+
+        return total != null ? total : 0;
     }
 
     @Transactional
