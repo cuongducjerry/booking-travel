@@ -3,6 +3,7 @@ package vn.travel.booking.dto.response.user;
 import lombok.Data;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Data
 public class ResUpdateProfileUserDTO {
@@ -11,6 +12,6 @@ public class ResUpdateProfileUserDTO {
     private String phone;
     private String bio;
     private String address;
-    private int age;
+    private LocalDate dateOfBirth;
     private Instant updatedAt;
 }

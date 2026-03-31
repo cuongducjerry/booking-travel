@@ -80,7 +80,7 @@ public class UserService {
         user.setPhone(reqCreateUserDTO.getPhone());
         user.setFullName(reqCreateUserDTO.getFullName());
         user.setAddress(reqCreateUserDTO.getAddress());
-        user.setAge(reqCreateUserDTO.getAge());
+        user.setDateOfBirth(reqCreateUserDTO.getDateOfBirth());
 
         if(role.getName().equals(RoleCode.USER.toString())) {
             user.setStatus(StatusUser.APPROVED);
@@ -132,7 +132,7 @@ public class UserService {
         user.setFullName(req.getFullName());
         user.setPhone(req.getPhone());
         user.setAddress(req.getAddress());
-        user.setAge(req.getAge());
+        user.setDateOfBirth(req.getDateOfBirth());
         user.setActive(true);
 
 
@@ -165,7 +165,7 @@ public class UserService {
         currentUser.setPhone(reqUser.getPhone());
         currentUser.setBio(reqUser.getBio());
         currentUser.setAddress(reqUser.getAddress());
-        currentUser.setAge(reqUser.getAge());
+        currentUser.setDateOfBirth(reqUser.getDateOfBirth());
 
         return this.userMapper.convertToResUpdateProfileUserDTO(currentUser);
     }

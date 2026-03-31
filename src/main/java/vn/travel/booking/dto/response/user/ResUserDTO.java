@@ -4,6 +4,7 @@ import lombok.*;
 import vn.travel.booking.util.constant.StatusUser;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Data
 public class ResUserDTO {
@@ -13,7 +14,7 @@ public class ResUserDTO {
     private String phone;
     private String address;
     private String bio;
-    private int age;
+    private LocalDate dateOfBirth;
     private String avatarUrl;
     private StatusUser status;
 

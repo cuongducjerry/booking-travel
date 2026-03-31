@@ -3,6 +3,8 @@ package vn.travel.booking.dto.request.user;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class ReqUpdateProfileUserDTO {
 
@@ -26,8 +28,7 @@ public class ReqUpdateProfileUserDTO {
     @Size(max = 255, message = "Địa chỉ không được vượt quá 255 ký tự")
     private String address;
 
-    @Min(value = 0, message = "Tuổi không được nhỏ hơn 0")
-    @Max(value = 120, message = "Tuổi không được lớn hơn 120")
-    private int age;
+    @Past(message = "Ngày sinh phải là ngày trong quá khứ")
+    private LocalDate dateOfBirth;
 }
 

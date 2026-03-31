@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Data
 public class ReqCreateUserDTO {
 
@@ -23,9 +25,9 @@ public class ReqCreateUserDTO {
     private String phone;
     private String address;
 
-    @NotNull(message = "age không được để trống")
-    @Min(value = 0, message = "age phải >= 0")
-    private Integer age;
+    @NotNull(message = "Ngày sinh không được để trống")
+    @Past(message = "Ngày sinh phải là ngày trong quá khứ")
+    private LocalDate dateOfBirth;
 
     private boolean active = true;
 

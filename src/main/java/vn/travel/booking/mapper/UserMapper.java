@@ -15,7 +15,7 @@ public class UserMapper {
         res.setFullName(user.getFullName());
         res.setPhone(user.getPhone());
         res.setAddress(user.getAddress());
-        res.setAge(user.getAge());
+        res.setDateOfBirth(user.getDateOfBirth());
         res.setCreatedAt(user.getCreatedAt());
         res.setUpdatedAt(user.getUpdatedAt());
         res.setCreatedBy(user.getCreatedBy());
@@ -38,7 +38,7 @@ public class UserMapper {
         res.setFullName(user.getFullName());
         res.setPhone(user.getPhone());
         res.setAddress(user.getAddress());
-        res.setAge(user.getAge());
+        res.setDateOfBirth(user.getDateOfBirth());
         res.setBio(user.getBio());
         res.setUpdatedAt(user.getUpdatedAt());
 
