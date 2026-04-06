@@ -74,20 +74,25 @@ public class BookingHostService {
             hostFeeRepository.save(fee);
 
             // notify HOST about fee obligation
-            notificationService.notify(
-                    hostId,
-                    NotificationType.BOOKING,
-                    "Nhắc nhở thanh toán phí cho booking #" + booking.getId(),
-                    "Bạn cần thanh toán phí dịch vụ cho booking phòng "
-                            + booking.getProperty().getTitle()
-                            + " ("
-                            + booking.getCheckIn() + " → " + booking.getCheckOut()
-                            + "). "
-                            + "Hạn thanh toán: "
-                            + dueAt.atZone(ZoneId.systemDefault()).toLocalDate()
-                            + ". Quá hạn hệ thống sẽ khóa tài khoản host.",
-                    true
-            );
+            try {
+                notificationService.notify(
+                        hostId,
+                        NotificationType.BOOKING,
+                        "Nhắc nhở thanh toán phí cho booking #" + booking.getId(),
+                        "Bạn cần thanh toán phí dịch vụ cho booking phòng "
+                                + booking.getProperty().getTitle()
+                                + " ("
+                                + booking.getCheckIn() + " → " + booking.getCheckOut()
+                                + "). "
+                                + "Hạn thanh toán: "
+                                + dueAt.atZone(ZoneId.systemDefault()).toLocalDate()
+                                + ". Quá hạn hệ thống sẽ khóa tài khoản host.",
+                        true
+                );
+            } catch (Exception e) {
+                System.err.println("Send mail failed: " + e.getMessage());
+            }
+
         }
 
         // notify CUSTOMER
@@ -100,7 +105,7 @@ public class BookingHostService {
                         + " ("
                         + booking.getCheckIn() + " → " + booking.getCheckOut()
                         + ")",
-                true
+                false
         );
     }
 
@@ -177,7 +182,7 @@ public class BookingHostService {
                     "Booking đã được hủy",
                     "Host đã xác nhận yêu cầu hủy booking từ "
                             + booking.getCheckIn() + " đến " + booking.getCheckOut(),
-                    true
+                    false
             );
         } else {
             // Host proactively cancels
@@ -187,7 +192,7 @@ public class BookingHostService {
                     "Booking bị hủy bởi host",
                     "Host đã hủy booking từ "
                             + booking.getCheckIn() + " đến " + booking.getCheckOut(),
-                    true
+                    false
             );
         }
     }

@@ -160,19 +160,22 @@ public class HostPayoutService {
         // ================================
         // NOTIFY HOST – PAYOUT SUCCESS
         // ================================
-        notificationService.notify(
-                payout.getHost().getId(),
-                NotificationType.PAYOUT,
-                "Payout #" + payout.getId() + " đã được thanh toán",
-                "Admin đã chuyển tiền payout cho kỳ "
-                        + payout.getPeriodFrom() + " → " + payout.getPeriodTo()
-                        + ".\n"
-                        + "Số tiền nhận: " + payout.getNetAmount() + " " + payout.getCurrency()
-                        + ".\n"
-                        + "Mã giao dịch: " + transactionRef,
-                true
-        );
-
+        try {
+            notificationService.notify(
+                    payout.getHost().getId(),
+                    NotificationType.PAYOUT,
+                    "Payout #" + payout.getId() + " đã được thanh toán",
+                    "Admin đã chuyển tiền payout cho kỳ "
+                            + payout.getPeriodFrom() + " → " + payout.getPeriodTo()
+                            + ".\n"
+                            + "Số tiền nhận: " + payout.getNetAmount() + " " + payout.getCurrency()
+                            + ".\n"
+                            + "Mã giao dịch: " + transactionRef,
+                    true
+            );
+        } catch (Exception e) {
+            System.err.println("Send mail failed: " + e.getMessage());
+        }
 
         return payoutMapper.convertToResHostPayoutDTO(payout);
     }
@@ -197,16 +200,20 @@ public class HostPayoutService {
         // ================================
         // NOTIFY HOST – PAYOUT REJECTED
         // ================================
-        notificationService.notify(
-                payout.getHost().getId(),
-                NotificationType.PAYOUT,
-                "Payout #" + payout.getId() + " bị từ chối",
-                "Payout cho kỳ "
-                        + payout.getPeriodFrom() + " → " + payout.getPeriodTo()
-                        + " đã bị từ chối.\n"
-                        + "Lý do: " + reason,
-                true
-        );
+        try {
+            notificationService.notify(
+                    payout.getHost().getId(),
+                    NotificationType.PAYOUT,
+                    "Payout #" + payout.getId() + " bị từ chối",
+                    "Payout cho kỳ "
+                            + payout.getPeriodFrom() + " → " + payout.getPeriodTo()
+                            + " đã bị từ chối.\n"
+                            + "Lý do: " + reason,
+                    true
+            );
+        } catch (Exception e) {
+            System.err.println("Send mail failed: " + e.getMessage());
+        }
 
         return payoutMapper.convertToResHostPayoutDTO(payout);
     }

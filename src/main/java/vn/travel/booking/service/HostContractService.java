@@ -197,15 +197,20 @@ public class HostContractService {
         // ===============================
         // 8. Notify admin
         // ===============================
-        notificationService.notifyAdmins(
-                NotificationType.CONTRACT,
-                "Yêu cầu hợp đồng mới " + contract.getContractCode(),
-                "Host: " + host.getFullName()
-                        + "\nHoa hồng đề xuất: " + (req.getExpectedCommissionRate() * 100) + "%"
-                        + "\nThời gian: " + req.getStartDate() + " → " + req.getEndDate()
-                        + "\nTrạng thái: " + status,
-                true
-        );
+        try {
+            notificationService.notifyAdmins(
+                    NotificationType.CONTRACT,
+                    "Yêu cầu hợp đồng mới " + contract.getContractCode(),
+                    "Host: " + host.getFullName()
+                            + "\nHoa hồng đề xuất: " + (req.getExpectedCommissionRate() * 100) + "%"
+                            + "\nThời gian: " + req.getStartDate() + " → " + req.getEndDate()
+                            + "\nTrạng thái: " + status,
+                    true
+            );
+        } catch (Exception e) {
+            System.err.println("Send mail failed: " + e.getMessage());
+        }
+
 
         return contractMapper.convertToResContractDTO(contract);
     }
@@ -291,7 +296,7 @@ public class HostContractService {
                 "Hợp đồng #" + contract.getContractCode()
                         + " đã được admin duyệt và có hiệu lực từ "
                         + contract.getStartDate(),
-                true
+                false
         );
 
         return contractMapper.convertToResContractDTO(contract);
@@ -321,7 +326,7 @@ public class HostContractService {
                 "Hợp đồng bị từ chối",
                 "Hợp đồng #" + contract.getContractCode()
                         + " đã bị từ chối.\nLý do: " + reason,
-                true
+                false
         );
     }
 

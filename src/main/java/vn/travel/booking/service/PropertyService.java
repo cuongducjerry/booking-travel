@@ -129,6 +129,8 @@ public class PropertyService {
 
         property.setStatus(PropertyStatus.DRAFT);
 
+        contract.setStatus(ContractStatus.PENDING);
+
         propertyRepository.save(property);
 
         return propertyMapper.convertToResPropertyDTO(property);
@@ -174,7 +176,7 @@ public class PropertyService {
                         + " đã submit property:\n"
                         + "• Tên: " + property.getTitle() + "\n"
                         + "• Địa chỉ: " + property.getAddress(),
-                true
+                false
         );
 
         return this.propertyMapper.convertToResPropertyDetailDTO(property);
@@ -271,7 +273,7 @@ public class PropertyService {
                         "Property \"" + property.getTitle()
                                 + "\" đã bị từ chối.\n\nLý do: "
                                 + req.getReason(),
-                        true
+                        false
                 );
             }
 

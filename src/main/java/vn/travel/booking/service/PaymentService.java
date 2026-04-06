@@ -104,14 +104,18 @@ public class PaymentService {
         booking.setStatus(BookingStatus.PENDING);
         bookingRepository.save(booking);
 
-        notificationService.notify(
-                booking.getProperty().getHost().getId(),
-                NotificationType.BOOKING,
-                "Có booking mới cần bạn kiểm duyệt",
-                "Khách thanh toán bằng tiền mặt và muốn đặt phòng từ "
-                        + booking.getCheckIn() + " đến " + booking.getCheckOut(),
-                true
-        );
+        try {
+            notificationService.notify(
+                    booking.getProperty().getHost().getId(),
+                    NotificationType.BOOKING,
+                    "Có booking mới cần bạn kiểm duyệt",
+                    "Khách thanh toán bằng tiền mặt và muốn đặt phòng từ "
+                            + booking.getCheckIn() + " đến " + booking.getCheckOut(),
+                    true
+            );
+        } catch (Exception e) {
+            System.err.println("Send mail failed: " + e.getMessage());
+        }
 
         return paymentMapper.toResCreatePaymentDTO(
                 payment.getId(),
@@ -201,14 +205,18 @@ public class PaymentService {
             // NOTIFY HOST – New booking (send via email)
             Long hostId = payment.getBooking().getProperty().getHost().getId();
 
-            notificationService.notify(
-                    hostId,
-                    NotificationType.BOOKING,
-                    "Có booking mới",
-                    "Khách đã thanh toán qua VNPAY và đặt phòng từ "
-                            + booking.getCheckIn() + " đến " + booking.getCheckOut(),
-                    true
-            );
+            try {
+                notificationService.notify(
+                        hostId,
+                        NotificationType.BOOKING,
+                        "Có booking mới",
+                        "Khách đã thanh toán qua VNPAY và đặt phòng từ "
+                                + booking.getCheckIn() + " đến " + booking.getCheckOut(),
+                        true
+                );
+            } catch (Exception e) {
+                System.err.println("Send mail failed: " + e.getMessage());
+            }
 
             return paymentMapper.toResCallBackPayDTO(paymentId,"MOCK PAYMENT SUCCESS");
         }

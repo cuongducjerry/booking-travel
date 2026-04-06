@@ -101,7 +101,7 @@ public class ReviewService {
             throw new RuntimeException("Bạn không có quyền xóa đánh giá của người khác!");
         }
 
-        // 🔥 GỌI DELETE NHƯNG LÀ SOFT DELETE
+        // GỌI DELETE NHƯNG LÀ SOFT DELETE
         reviewRepository.delete(review);
     }
 

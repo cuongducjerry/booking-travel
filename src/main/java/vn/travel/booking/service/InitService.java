@@ -66,7 +66,7 @@ public class InitService {
                 .orElseGet(() -> {
                     Role r = Role.builder()
                             .name("SUPER_ADMIN")
-                            .description("Full quyền hệ thống (đã lọc)")
+                            .description("Full system privileges (filtered)")
                             .build();
                     return roleRepository.save(r);
                 });

@@ -146,7 +146,7 @@ public class BookingService {
                         + " ("
                         + booking.getCheckIn() + " → " + booking.getCheckOut()
                         + ")",
-                true
+                false
         );
     }
 
@@ -158,7 +158,7 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
 
-        // không cho xóa booking đang chạy
+
         if (booking.getStatus().equals(BookingStatus.NEW)
                 || booking.getStatus().equals(BookingStatus.CONFIRMED)) {
             throw new RuntimeException("Không thể xóa booking đang hoạt động");
