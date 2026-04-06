@@ -15,6 +15,7 @@ import vn.travel.booking.util.constant.StatusUser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -56,20 +57,26 @@ public class InitService {
     // ================= ROLE =================
     private Role initSuperAdminRole(List<Permission> allPermissions) {
 
+        List<Permission> filteredPermissions = allPermissions.stream()
+                .filter(p -> !PermissionConstants.SUPER_ADMIN_EXCLUDED.contains(p.getCode()))
+                .collect(Collectors.toList());
+
         Role role = roleRepository
                 .findByNameIncludeInactive("SUPER_ADMIN")
                 .orElseGet(() -> {
                     Role r = Role.builder()
                             .name("SUPER_ADMIN")
-                            .description("Full quyền hệ thống")
+                            .description("Full quyền hệ thống (đã lọc)")
                             .build();
                     return roleRepository.save(r);
                 });
 
-        if (role.getPermissions() == null ||
-                role.getPermissions().size() != allPermissions.size()) {
+        boolean needUpdate = role.getPermissions() == null ||
+                role.getPermissions().size() != filteredPermissions.size() ||
+                !role.getPermissions().containsAll(filteredPermissions);
 
-            role.setPermissions(allPermissions);
+        if (needUpdate) {
+            role.setPermissions(new ArrayList<>(filteredPermissions));
             roleRepository.save(role);
         }
 

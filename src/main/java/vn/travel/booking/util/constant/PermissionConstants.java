@@ -1,8 +1,10 @@
 package vn.travel.booking.util.constant;
 
 import java.util.List;
+import java.util.Set;
 
 public class PermissionConstants {
+
     public static final List<String> ALL_PERMISSIONS = List.of(
             "AMENITY_CREATE",
             "AMENITY_UPDATE",
@@ -79,4 +81,43 @@ public class PermissionConstants {
             "WISHLIST_PERSONAL",
             "WISHLIST_CHECK"
     );
+
+    public static final List<String> SUPER_ADMIN_EXCLUDED = List.of(
+            "AMENITY_UPDATE",
+            "AMENITY_DELETE",
+            "FEE_UPDATE",
+            "PAYOUT_CREATE",
+            "PAYOUT_MARK_PAID",
+            "PAYOUT_MARK_REJECTED",
+            "PROPERTY_APPROVE",
+            "PROPERTY_DELETE_APPROVE",
+            "PROPERTY_TYPE_CREATE",
+            "PROPERTY_TYPE_UPDATE",
+            "PROPERTY_TYPE_DELETE",
+            "USER_CREATE",
+            "BOOKING_CONFIRM",
+            "BOOKING_CANCEL",
+            "BOOKING_DONE",
+            "BOOKING_LIST_OWN",
+            "CONTRACT_REQUEST",
+            "CONTRACT_LIST_PERSONAL",
+            "CONTRACT_VIEW_PERSONAL",
+            "PAYOUT_LIST_OWN",
+            "PROPERTY_CREATE",
+            "PROPERTY_UPDATE_AMENITY",
+            "PROPERTY_SUBMIT",
+            "PROPERTY_UPDATE",
+            "PROPERTY_DELETE",
+            "PROPERTY_LIST_OWN_INACTIVE",
+            "PROPERTY_UPLOAD_IMAGE",
+            "PROPERTY_DELETE_IMAGE",
+            "PROPERTY_DRAFT_IMAGE_LIST",
+            "PROPERTY_LIST_OWN",
+            "BOOKING_CREATE",
+            "BOOKING_LIST_PERSONAL",
+            "BOOKING_DELETE",
+            "PAYMENT_CREATE",
+            "PAYMENT_CALLBACK"
+    );
+
 }
