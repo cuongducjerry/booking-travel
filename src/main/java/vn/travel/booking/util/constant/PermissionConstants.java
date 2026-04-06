@@ -94,7 +94,6 @@ public class PermissionConstants {
             "PROPERTY_TYPE_CREATE",
             "PROPERTY_TYPE_UPDATE",
             "PROPERTY_TYPE_DELETE",
-            "USER_CREATE",
             "BOOKING_CONFIRM",
             "BOOKING_CANCEL",
             "BOOKING_DONE",
